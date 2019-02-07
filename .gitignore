@@ -2,3 +2,4 @@
 ./*/idea/*
 idea/*
 ./static
+.DS_Store
