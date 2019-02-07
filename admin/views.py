@@ -4,11 +4,9 @@ from models.model import ADMIN, VALID, ErrorLog
 from models import MD5
 from datetime import datetime, timedelta
 from mail.qqmail import send
-from mail.myipaddress import ipaddress
-from run import db, app
+from project_init import db
 from error_log.mylog import error404, SetError
 from login import login_required
-from sqlalchemy import desc
 
 
 @admin_bp.route('/login/', methods=["GET", "POST"])
@@ -40,15 +38,15 @@ def login():
                 resp.set_cookie('userid', str(user.id), expires=datetime.now()+timedelta(days=7))
             else:
                 pass
-            #send('message', message=f"登入者帐号{uid}已成功登入ip:{ip},ip地址:{ipaddress(ip)}")
-            #error_log = ErrorLog(f"登入者帐号{uid}已成功登入"f"ip:{ip},ip地址:{ipaddress(ip)}")
-            #db.session.add(error_log)
-            #db.session.commit()
+            send('message', message=f"登入者帐号{uid}已成功登入ip:{ip}")
+            error_log = ErrorLog(f"登入者帐号{uid}已成功登入"f"ip:{ip}")
+            db.session.add(error_log)
+            db.session.commit()
             return resp
         else:
             flash('账号密码错误')
-            send("message", message=f"登入者帐号密码输入错误.ip:{ip},ip地址:{ipaddress(ip)}")
-            error_log = ErrorLog(f"登入者帐号密码输入错误.ip:{ip},ip地址:{ipaddress(ip)}\n尝试帐号{uid}")
+            send("message", message=f"登入者帐号密码输入错误.ip:{ip}")
+            error_log = ErrorLog(f"登入者帐号密码输入错误.ip:{ip}\n尝试帐号{uid}")
             db.session.add(error_log)
             db.session.commit()
             return render_template('login.html')
