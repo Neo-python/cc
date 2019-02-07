@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+</head>
+<body>
+<a href="{{ url_for('form_bp.show_list') }}"><i class="fa fa-mail-reply" style="font-size: 30px"></i></a>
+<div style="height: 97vh;width: 96%;padding: 0px;margin: 0px;float: right" id="p">
+    <div style="height: 27.5vh">
+    </div>
+    <div style="height: 70vh">
+        <div style="height: 1vh"></div>
+        <div style="height: 6.5vh">
+            <div style="width: 6%;float: left">&nbsp;</div>
+            <div style="width: 23%;float: left;font-size: 20px;line-height: 26px;">
+                {{ obj.province_name.area_name + "省 "+ obj.city_name.area_name + "市 " }}
+                {{ obj.area_name.area_name if obj.area_name}}
+            </div>
+            <div style="width: 8%;float: left">&nbsp;</div>
+            <div style="width: 22%;float: left;font-size: 30px">{{ obj.user }}</div>
+            <div style="width: 8%;float: left">&nbsp;</div>
+            <div style="width: 31%;float: left;font-size: 30px">{{ obj.phone }}</div>
+        </div>
+        <div style="height: 7.5vh">
+            <div style="width: 8%;float: left">&nbsp;</div>
+            <div style="width: 52%;float: left;font-size: 30px">&nbsp;{{ obj.userunit }}</div>
+            <div style="width: 8%;float: left">&nbsp;</div>
+            <div style="width: 31%;float: left;font-size: 30px">{{ obj.telephone }}</div>
+        </div>
+        <div style="height: 7vh"></div>
+        <div style="height: 7vh">
+            {% set product = obj.oids.first() %}
+            <div style="width: 38%;float: left;font-size: 30px;text-align: center">{{ product.productname }}</div>
+            <div style="width: 5.5%;float: left;font-size: 30px">&nbsp;</div>
+            <div style="width: 11.5%;float: left;font-size: 30px">{{ product.count }}件</div>
+            <div style="width: 13%;float: left;font-size: 30px">
+            &nbsp;
+                {% if product.measure %}
+                    {{ product.measure }}{{ "吨" if product.measureunit == 0 else "方" }}
+                {% endif %}
+            </div>
+            <div style="width: 7%;float: left;font-size: 30px">&nbsp;</div>
+            <div style="width: 15%;float: left;font-size: 30px">{{ "自提" if obj.receipt == 0 else "送货" }}</div>
+            <div style="width: 10%;float: left;font-size: 30px">{{ "现付" if obj.payment == 0 else "提付" }}</div>
+        </div>
+        <div style="height: 8.5vh">
+            {% if obj.oids.offset(1).first() %}
+                {% set product2 = obj.oids.offset(1).first() %}
+                <div style="width: 38%;float: left;font-size: 30px;text-align: center">{{ product2.productname }}</div>
+                <div style="width: 5.5%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 11.5%;float: left;font-size: 30px">{{ product2.count }}件</div>
+                <div style="width: 11%;float: left;font-size: 30px">
+                &nbsp;
+                    {% if product2.measure %}
+                        {{ product2.measure }}{{ "吨" if product2.measureunit == 0 else "方" }}
+                    {% endif %}
+                </div>
+                <div style="width: 7%;float: left">&nbsp;</div>
+            {% endif %}
+        </div>
+        <div style="height: 30vh;width: 65%;float: left">
+            <div style="height: 6vh">
+                <div style="width: 5%;float: left">&nbsp;</div>
+                <div style="width: 6%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 5%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 15%;float: left;font-size: 30px">
+                &nbsp;
+                    {% if price['千'] != 'None' %}
+                        <i>{{ 'X' if price['万'] == 'None' }}</i>
+                        {{ price['十万'] }}{{ price['万'] if price['万'] != 'None'}}
+                    {% endif %}
+                </div>
+                <div style="width: 3%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 9%;float: left;font-size: 30px">
+                &nbsp;
+                    {% if price['百'] != 'None' %}
+                        <i>{{ 'X' if price['千'] == 'None' }}</i>
+                        {{ price['千'] if price['千'] != 'None'}}
+                    {% endif %}
+                </div>
+                <div style="width: 4%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 9%;float: left;font-size: 30px">
+                &nbsp;
+                    {% if price['十'] != 'None' %}
+                        <i>{{ 'X' if price['百'] == 'None' }}</i>
+                        {{ price['百'] if price['百'] != 'None'}}
+                    {% endif %}
+                </div>
+                <div style="width: 6%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 14%;float: left;font-size: 30px">
+                    {{ price['十'] if obj.price != 0 else ''}}
+                </div>
+                <div style="width: 10%;float: left;font-size: 30px;text-align: right">{{ obj.price if obj.price != 0 else ''}}</div>
+            </div>
+            <div style="height: 7vh">
+                <div style="width: 20%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 51%;float: left;font-size: 30px">&nbsp;{{ obj.client }}</div>
+                <div style="width: 8%;float: left;font-size: 30px">&nbsp;</div>
+                <div style="width: 12%;float: left;font-size: 30px">{{ obj.clientphone }}</div>
+            </div>
+        </div>
+        <div style="height: 20vh;width: 33%;float: left">
+            <div style="height: 5vh;width: 20%;float: left"></div>
+            {{ obj.remarks }}
+        </div>
+        <div style="height: 13vh;width: 33%;float: left;position: relative">
+            <h3 style="margin: 0px;position: absolute;bottom: 0px;right: 0px">
+                {{ obj.createtime.strftime('%Y &nbsp;&nbsp; %m &nbsp; %d')|safe }}
+            </h3>
+        </div>
+    </div>
+<style>
+    div{
+        padding: 0px;
+        margin: 0px;
+        font-family: 方正兰亭超细黑简体;
+    }
+</style>
+</div>
+</body>
+<script src="/static/js/jquery-3.2.1.min.js" ></script>
+<script src="/static/js/RitsC-PrintArea-2cc7234/demo/jquery.PrintArea.js" ></script>
+<script>
+    $(document).ready(function () {
+        $("#p").printArea();
+    })
+</script>
+</html>

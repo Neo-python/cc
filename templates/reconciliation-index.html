@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div id="left-div">
+    <div class="col-lg-12">
+        <section class="panel">
+            <header class="panel-heading head-border">
+                <h1>对账表</h1>
+            </header>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>单号</th>
+                    <th>时间</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in obj %}
+                    <tr onclick="window.location.href = '/reconciliation/calculation/{{ i.id }}'">
+                        <th>{{ i.id }}</th>
+                        <td>{{ i.lists }}</td>
+                        <td>{{ i.create_time.strftime("%Y-%m-%d %H:%M") }}</td>
+                        <td id="td-remarks"><p style="{{'background-color: #53d192' if i.remarks }}" data-toggle="tooltip" data-placement="left" title="<h3>{{ i.remarks }}</h3>">{{ '...' if i.remarks }}</p></td>
+                        <td><a href="/reconciliation/del/{{i.id}}" class="btn btn-danger btn-xs" onclick="if(confirm('确认删除吗?')){return true}else{return false}"><i class="fa fa-trash-o "></i></a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+         <ul class="pagination pagination-lg pages" id="pages">
+                    <li><a href="{{ url_for("reconciliation_bp.index",id=1) }}">«</a></li>
+                    {% for i in pages %}
+                        <li class="{{'active' if i == current }}"><a href="{{ url_for("reconciliation_bp.index",id=i) }}">{{ i }}</a></li>
+                    {% endfor %}
+                    <li><a href="{{ url_for("reconciliation_bp.index",id=page_max) }}">»</a></li>
+                </ul>
+        </section>
+    </div>
+</div>
+<div id="right-div">
+<section class="panel">
+    <header class="panel-heading" id="rjsrt">
+
+                                <strong>每日交易金额详情图</strong>
+        <span class="tools pull-right">
+            <a class="fa fa-chevron-down" href="javascript:;" style="padding: 0px" onclick="$('#rjsrx1').toggle()"></a>
+        </span>
+        <label for="year">
+            <input type="radio" name="all_income" id="year" onclick="confirm_date()">年 &nbsp;&nbsp;&nbsp;
+        </label>
+        <label for="month">
+            <input type="radio" name="all_income" id="month" onclick="confirm_date()" checked="checked">月&nbsp;
+        </label>
+        <label for="week">
+            <input type="radio" name="all_income" id="week" onclick="confirm_date()">周&nbsp;
+        </label>
+
+    </header>
+    <div class="panel-body" id="rjsrx1">
+
+    </div>
+</section>
+<section class="panel">
+    <header class="panel-heading">
+
+                                <strong>日均线</strong>
+
+        <span class="tools pull-right">
+            <a class="fa fa-chevron-down" href="javascript:;" style="padding: 0px" onclick="$('#rjx').toggle()"></a>
+        </span>
+        <span class="tools pull-right">
+            <a href="javascript:;" class="fa fa-refresh" style="padding: 0px;margin: 3px" onclick="reset_average()"></a>
+        </span>
+        <label for="end">
+            结束日期
+            <input type="text" class="date" id="rjx_end" placeholder="请选择日期">
+        </label>
+        <label for="start">
+            起始日期
+            <input type="text" class="date" id="rjx_start" placeholder="请选择日期" >
+        </label>
+    </header>
+    <div class="panel-body" id="rjx">
+
+    </div>
+</section>
+<section class="panel">
+    <header class="panel-heading">
+
+                                <strong>排名</strong>
+
+        <span class="tools pull-right">
+            <a class="fa fa-chevron-down" href="javascript:;" style="padding: 0px" onclick="$('#pie').toggle()"></a>
+        </span>
+        <label for="end">
+            结束日期
+            <input type="text" class="date" id="end" placeholder="请选择日期">
+        </label>
+        <label for="start">
+            起始日期
+            <input type="text" class="date" id="start" placeholder="请选择日期" >
+        </label>
+    </header>
+    <div class="panel-body" id="pie">
+        <div id="pm">
+
+        </div>
+        <div id="pm2">
+
+        </div>
+    </div>
+</section>
+</div>
+<div id="bottom-div">
+</div>
+{% endblock %}
+
+{% block my_script %}
+    <link rel="stylesheet" href="/static/templates/reconciliation-index/index.css">
+    <script src="/static/templates/reconciliation-index/index.js"></script>
+    <script src="/static/js/echarts.mini.min.js"></script>
+    <link rel="stylesheet" href="/static/css/ion.calendar.css">
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/moment.zh-cn.js"></script>
+    <script src="/static/js/ion.calendar-left.js"></script>
+{% endblock %}

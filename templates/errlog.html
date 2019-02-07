@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>errlog</title>
+</head>
+<body>
+{% for e in err %}
+    <h1>{{ e.content }} &nbsp; {{ e.create_time }}</h1>
+{% endfor %}
+
+</body>
+</html>

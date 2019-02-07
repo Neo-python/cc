@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="form container" style="margin: 150px 0 0 0;width: 66%">
+    <div id="dfs" hidden>
+        <div style="width: 27%;float: left">
+            <label for="fuzzy-search">模糊搜索</label>
+            <input type="text" id="fuzzy-search" name="fuzzy-search" oninput="fuzzy(this.value)" list="fuzzy">
+        </div>
+        <div style="width: 70%;float: left">
+            <button>q</button>
+            <button>w</button>
+            <button>e</button>
+            <button>r</button>
+            <button>t</button>
+            <button>y</button>
+            <button>u</button>
+            <button>i</button>
+            <button>o</button>
+            <button>p</button><br>
+            &nbsp;&nbsp;&nbsp;<button>a</button>
+            <button>s</button>
+            <button>d</button>
+            <button>f</button>
+            <button>g</button>
+            <button>h</button>
+            <button>j</button>
+            <button>k</button>
+            <button>l</button><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button>z</button>
+            <button>x</button>
+            <button>c</button>
+            <button>v</button>
+            <button>b</button>
+            <button>n</button>
+            <button>m</button>
+            <button style="width: auto;height: auto" onclick="$('#fuzzy-search').attr('value','')" id="emptied">清空</button>
+        </div>
+    </div>
+    <form action="{{ url_for('form_bp.my_form') }}" method="post" id="MyForm">
+        {{ of.csrf_token }}
+        <div>
+            <div class="row">
+                <select name="province" id="province" va="city" oninput="c(this.value,this.id)" >
+                            <option value="0">请选择</option>
+                            <option value="10">河北</option>
+                            <option value="23">山西</option>
+                </select>
+                <label for="province">省</label>
+                <select name="city" id="city" va="area" onchange="c(this.value,this.id)">
+                            <option value="0">请选择</option>
+                </select>
+                <label for="city">市</label>
+                <select name="area" id="area" >
+                            <option value="0">请选择</option>
+                </select>
+                <label for="area">区</label>
+                <i class="fa fa-search" id="search-fuzzy" ></i>
+                <label for="user" >收货人</label>
+                {{ of.user(style="width:138px") }}
+                <label for="phone">手机</label>
+               {{ of.phone(onchange="number(this)") }}
+            </div>
+            <div class="row">
+                <label for="userunit">收货单位</label>
+                <input type="text" name="userunit" id="userunit" style="width: 250px">
+                <label for="telephone">电话</label>
+                <input type="text" name="telephone" id="telephone">
+                <label for="">付款方式</label>
+                {% for i in of.payment %}
+                    {{ i.label(style="user-select:none") }} {{ i }}
+                {% endfor %}
+            </div>
+            <div class="row">
+                <label for="productname">货物名称</label>
+                <select name="productname" id="productname" style="width: 157px" onchange="pn(this)">
+                    {% for i in pn %}
+                        <option value="{{ i.id }}">{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="count">件数</label>
+                <input type="text" name="count" id="count" style="width: 40px" >
+                <label for="measure">重量体积</label>
+                <input type="text" name="measure" id="measure" style="width: 39px">
+                <label for="measureunit">单位</label>
+                <select name="measureunit" id="measureunit">
+                        <option value="0">吨</option>
+                        <option value="1">方</option>
+                </select>
+                <button type="button" id="plus" onclick=" myplus(this.id)"><i class="fa fa-plus-square"></i></button>
+                <label for="">提货方式</label>
+                {% for i in of.receipt %}
+                    {{ i.label(style="user-select:none") }} {{ i }}
+                {% endfor %}
+            </div>
+            <div class="row" hidden id="plus1">
+                <label for="productname1">货物名称</label>
+                <select name="productname1" id="productname1" style="width: 157px" onchange="pn(this)">
+                    {% for i in pn %}
+                        <option value="{{ i.id }}">{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="count1">件数</label>
+                <input type="text" name="count1" id="count1" style="width: 40px">
+                <label for="measure">重量体积</label>
+                <input type="text" name="measure1" id="measure1" style="width: 39px">
+                <label for="measureunit1">单位</label>
+                <select name="measureunit1" id="measureunit1">
+                        <option value="0">吨</option>
+                        <option value="1">方</option>
+                </select>
+            </div>
+            <div class="row">
+                <label for="client">发货单位及姓名</label>
+                <input type="text" name="client" id="client" list="clientDL">
+                <label for="clientphone">电话</label>
+                <input type="text" name="clientphone" id="clientphone">
+                <label for="price">金额</label>
+                {{ of.price(style='width: 170px;text-align: right',autocomplete='off',placeholder=0) }}
+            </div>
+            <div class="row">
+                <label for="remarks">备注</label>
+                <textarea name="remarks" id="remarks" cols="45" rows="1" style="vertical-align: top"></textarea>
+                <button class="btn btn-success btn-xs" type="button" id="remarksBTN"><i class="fa fa-spinner fa-spin"></i></button>
+                <input type="text" class="date" id="date" name="date" placeholder="请选择日期">
+                <button type="submit" class="btn btn-primary btn-xs" style="width: 110px;height: 26px">提交</button>
+            </div>
+            <div id="err" class="row" style="text-align: center"></div>
+        </div>
+        <input type="checkbox" name="status" id="status" hidden >
+    </form>
+    <datalist id="clientDL" name="clientDL"></datalist>
+    </div>
+    <div id="remarksLIST" hidden style="position: absolute">
+        <ul class="nav nav-pills nav-stacked ">
+            {% if remarks %}
+                {% for i in remarks %}
+                    <li class="btn btn-success">{{ i.text }}</li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+    <div id="fuzzydb" style="position: absolute;top: 65%;left: 2%"></div>
+    {% with message = get_flashed_messages() %}
+        {% if message %}
+            {% for i in message %}
+                <p hidden id="message">{{ i }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+<a href=""></a>
+
+{% block my_script %}
+    <link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/ion.calendar.css">
+    <link rel="stylesheet" href="/static/templates/form/form.css">
+    <script src="/static/js/jquery.validate.min.js"></script>
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/moment.zh-cn.js"></script>
+    <script src="/static/js/ion.calendar.min.js"></script>
+    <script src="/static/templates/form/form.js"></script>
+{% endblock %}

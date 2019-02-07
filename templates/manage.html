@@ -1,0 +1,51 @@
+{% extends 'base.html'%}
+{% block body %}
+<div class="manage-window">
+    <div class="mycontainer">
+        <h2>货物类别管理</h2>
+        <div class="myrow">
+            <table>
+                <tr>
+                    <td>
+                        <form action="">
+                            <input type="text" id="newProduct">
+                            <button id="productAdd" type="button">增加</button>
+                        </form>
+                    </td>
+                    <td>
+                        <select name="productName" id="productName">
+                        </select>
+                        <button id="productDelete" type="button">删除</button>
+                        <button id="sortingButton">排序</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+             <div style="width: 66%" id="product_div">
+                <ul id="foo" class="block__list block__list_words">
+                </ul>
+            </div>
+    </div>
+</div>
+<div class="manage-window">
+<h2>备注管理</h2>
+     <div>
+         <input type="text" placeholder="添加新的备注" onchange="$('#remark_add').attr('href','/manage/remark/add/'+$(this).val())">
+         <a href="/manage/remark/add/" class="btn btn-primary" id="remark_add">添加</a>
+         <button id="remarkButton">排序</button>
+     </div>
+    <div style="width: 66%">
+        <ul id="remark" class="block__list block__list_words">
+        </ul>
+    </div>
+</div>
+{#<div class="manage-window">3</div>#}
+{#<div class="manage-window">4</div>#}
+{% endblock %}
+{% block my_script %}
+    <link rel="stylesheet" href="/static/Sortable-master/st/app.css">
+    <script src="../static/js/jquery-3.2.1.min.js"></script>
+    <script src="/static/js/jquery-ui-1.10.3.min.js"></script>
+    <script src="/static/templates/manage/manage.js"></script>
+    <link rel="stylesheet" href="/static/templates/manage/manage.css">
+{% endblock %}

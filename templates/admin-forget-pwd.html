@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div id="div-top">
+        <form action="{{ url_for("admin_bp.forget_pwd") }}" id="change_form" method="post">
+            <div >
+                <input type="email" name="mail" id="mail" class="my_input">
+            </div>
+            <div>
+                <button class="change-btn" id="recovery" type="button">重新输入
+                </button><button class="change-btn" id="submit">提交申请</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+{% block my_script %}
+    <link rel="stylesheet" href="/static/templates/admin-change/password.css">
+    <script src="/static/js/jquery-3.2.1.min.js"></script>
+    <script src="/static/js/jquery.validate.min.js"></script>
+    <script src="/static/templates/admin-change/forget-pwd.js"></script>
+{% endblock %}

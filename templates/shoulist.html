@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="container">
+    <div class="row" style="min-height: 447px">
+        <table class="table table-striped custom-table table-hover">
+            <thead>
+            <tr>
+                <th width="6%"><i class="fa fa-bookmark-o"></i> 编号</th>
+                <th width="16%"><i class=" fa fa-edit"></i> 地址</th>
+                <th width="35%"><i class="fa fa-bar-chart-o"></i> 货物名称
+                    <i class="fa fa-cubes"></i> 重量体积</th>
+                <th width="%"><i class="fa fa-building-o"></i> 姓名</th>
+                <th width="%" class="hidden-xs"><i class=""></i> 日期时间</th>
+                <th width="%"class="hidden-xs"><i class=""></i> 操作</th>
+            </tr>
+            </thead>
+            <tbody id="tb">
+            {% for i in d %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.province_name.area_name }} {{ i.city_name.area_name }} {{ i.area_name.area_name }}</td>
+                    <td>
+                        {% for ii in i.oids %}
+                            {{ '|' }}{{ ii.productname}}{{ '|' }}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for ii in i.oids %}
+                            {{ '|' }}{{ ii.count }}件{{ ii.measure}}{{ '吨' if ii.measureunit==0 else '方' }}{{ '|' }}
+                        {% endfor %}
+                    </td>
+                    <td>{{ i.user }}</td>
+                    <td>{{ i.createtime.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        <div>
+            <i class="fa fa-print  btn btn-info btn-lg" style="float: left;line-height: 25px;margin: 0 5px 0 0" id="printer"></i>
+            <i class="fa fa-close btn btn-dark btn-lg" style="float: left;line-height: 25px" id="closeP"></i>
+            <ul class="pagination pagination-lg pages" id="pages" style="padding-left: 32%;margin: 0px;" >
+            </ul>
+        </div>
+    <p id="searchCount"></p>
+    <form id="myform">
+        <div class="row">
+        <label for="province">省</label>
+        <select name="province" id="province" va="city" onchange="pca(this.value,this.id),c()" >
+                    <option value="0">请选择</option>
+                    <option value="10">河北</option>
+                    <option value="23">山西</option>
+        </select>
+        <label for="city">市</label>
+        <select name="city" id="city" va="area" onclick="pca(this.value,this.id),c()">
+            <option value="0">请选择</option>
+        </select>
+        <label for="area" >区</label>
+        <select name="area" id="area" onchange="c()">
+                    <option value="0">请选择</option>
+        </select>
+        <label for="user">收货人</label>
+        <input type="text" name="user" oninput="c()" id="user" list="num" autocomplete="off">
+        <label for="phone">手机</label>
+        <input type="text" name="phone" oninput="c()" list="phone" autocomplete="off">
+        <label for="">付款方式</label>
+        <label for="payment0">现付</label>
+        <input type="radio" name="payment" value="0" id="payment0" onclick="c()" >
+        <label for="payment1">提付</label>
+        <input type="radio" name="payment" value="1" id="payment1" onclick="c()">
+        <input type="text" class="date"  name="StartDate" placeholder="起始日期">
+        <i class="fa fa-refresh btn " style="font-size: 20px"
+           onclick="jquery:{$(':input').val('');$('#province').val(0);$('#city').val(0);$('#area').val(0);c()}">
+
+        </i>
+        </div>
+        <div class="row">
+            <label for="count">件数</label>
+            <input type="text" name="count" id="count" style="width: 44px" oninput="c()">
+            <label for="price">金额</label>
+            <input type="text" name="price" id="price" style="width: 154px;text-align: right"  oninput="c()">
+            <label for="remarks">备注</label>
+            <textarea name="remarks" id="remarks" cols="48" rows="1" style="vertical-align: top;width: 358px" oninput="c()"></textarea>
+            <label for="">提货方式</label>
+            <label for="receipt0">自提</label>
+            <input type="radio" name="receipt" value="0" id="receipt0" onclick="c()">
+            <label for="receipt1">送货</label>
+            <input type="radio" name="receipt" value="1" id="receipt1" onclick="c()">
+            <input type="text" class="date"  name="EndDate" placeholder="截至日期">
+        </div>
+    </form>
+        <datalist id="num" name="num">
+        </datalist>
+        <datalist id="phone"></datalist>
+    </div>
+    <form action="/printer/" id="PrinterForm" method="post">
+        <input type="text" id="FormList" name="FormList" hidden>
+    </form>
+    <style>
+    input[type=checkbox]{
+        width: 20px;
+        height: 20px;
+    }
+    </style>
+{% endblock %}
+{% block my_script %}
+    <script>
+        var PrintList = [];
+        function c (page) {
+            if(page==null){page='1'}
+            var form =$("#myform").serializeArray();
+            form.push({'name':'page','value':page});
+            form.push({'name':'PrintList','value':PrintList});
+            $.ajax({
+                url:'/search/',
+                data:JSON.stringify(form),
+                method:'POST',
+                success:function (item) {
+                    $('#tb').empty();
+                    $('#tb').append(item[0]);
+                    $('#pages').empty();
+                    $('#pages').attr('class','pagination pagination-lg');
+                    $('#pages').append(item[1]);
+                    $('#num').empty();
+                    $('#phone').empty();
+                    $('#searchCount').empty();
+                    $('#searchCount').append('查询到:'+'<strong style="color: #006dcc">'+item[4]+'</strong>'+'条数据');
+                    var num = "";
+                    $.each(item[2],function (_, i) {
+                        num += '<option '+'value='+i[0]+'>'+'</option>'
+                    });
+                    $('#num').append(num);
+                    var phone = "";
+                    $.each(item[3],function (_,i) {
+                        phone += '<option '+'value='+i+'>'+'</option>';
+                    });
+                    $('#phone').append(phone)
+                }
+            });
+        };
+        function pca (v,id) {
+            var lower = $('#'+id).attr('va');
+            $('#'+lower).empty();
+            $('#'+lower).append('<option value=0>请选择</option>');
+            $('#area').empty();
+            $('#area').append('<option value=0>请选择</option>');
+            var data = {'area_id':v};
+            $.ajax({
+                url:'/province/',
+                data:JSON.stringify(data),
+                method:'POST',
+                dataType:'json',
+                success:function (i) {
+                    $.each(i,function (_,item) {
+                        $('#'+lower).append('<option value='+item.id+'>'+item.name+'</option>')
+                    })
+                }
+            });
+        };
+        $(document).ready(function () {
+            $.ajax({
+                url:'/page/',
+                data:{'page':1},
+                method:'GET',
+                success:function (item) {
+                    $('#pages').append(item)
+                }
+            });
+            $.ajax({
+                url:'/showlist/',
+                data:JSON.stringify({'page':1}),
+                method:"POST",
+                success:function (item) {
+                    $('#tb').append(item)
+                }
+            });
+            $('.pages li a').live('click',function () {
+                $.ajax({
+                url:'/page/',
+                data:{'page':$(this).attr('id')},
+                method:'GET',
+                success:function (item) {
+                    $('#pages').empty();
+                    $('#pages').append(item);
+                }
+            });
+                $.ajax({
+                    url:'/showlist/',
+                    data:JSON.stringify({'page':$(this).attr('id'),'PrintList':PrintList}),
+                    method:"POST",
+                    success:function (item) {
+                        $('#tb').empty(item);
+                        $('#tb').append(item)
+                    }
+                });
+            });
+            $(':checkbox').live('click',function () {
+                var i = $(this).attr('val');
+                var index = $.inArray(i,PrintList);
+                if(index < 0){
+                    PrintList.push(i);
+                }else {
+                    PrintList.splice(index,1)
+                }
+            });
+            $("#printer").click(function () {
+                $('#FormList').val(PrintList);
+                $('#PrinterForm').submit();
+            });
+            $("#closeP").click(function () {
+                PrintList = [];
+                $(' input[type=checkbox]').removeAttr('checked')
+            });
+            $('.date').each(function () {
+                $(this).ionDatePicker({
+                    lang:'zh-cn',
+                    format:'YYYY-MM-DD'
+                });
+            });
+
+        });
+    </script>
+    <link rel="stylesheet" href="/static/css/ion.calendar.css">
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/moment.zh-cn.js"></script>
+    <script src="/static/js/ion.calendar.js"></script>
+{% endblock %}

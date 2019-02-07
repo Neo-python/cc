@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block body %}
+    <script src="/static/js/jquery-3.2.1.min.js"></script>
+    <script src="/static/templates/reconciliation-verification/verification.js"></script>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        需要确认身份
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for("reconciliation_bp.verification") }}" id="verification" method="post">
+                        <input type="password" placeholder="请输入验证码" name="password" id="password" autocomplete="off">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消操作
+                    </button>
+                    <button type="button" class="btn btn-primary" id="form-submit">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button data-toggle="modal" data-target="#myModal" hidden id="errtext"></button>
+{% endblock %}

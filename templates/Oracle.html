@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>oracle进程管理</title>
+    <link rel="stylesheet" href="../static/oracle.css">
+    <script src="../static/js/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <script src="../static/oracle.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="">
+            <button class="btn btn-primary" id="refresh">查看状态</button>
+            <button class="btn btn-primary" id="end_process">结束进程</button>
+        </div>
+        <div class="">
+            <table class="table table-responsive">
+                <tr class="table-bordered">
+                    <th>全选</th>
+                    <th>单选</th>
+                    <th>SID</th>
+                    <th>用户名</th>
+                    <th>锁持有时间(秒)</th>
+                    <th>事务开始时间</th>
+                    <th>占用回滚块数</th>
+                    <th>Client_info</th>
+                    <th>阻塞会话数</th>
+                    <th>SQL_ID</th>
+                    <th>正在执行SQL语句</th>
+                    <th>序列号</th>
+                </tr>
+                {% if base %}
+                    {% for i in base %}
+                    <tr>
+                        <th>{{'<input type="checkbox" id="all">'|safe if loop.index == 1 else "" }}</th>
+                        <td><input type="checkbox" id="{{ i[0] }}" val="{{ i[9] }}"></td>
+                        <td>{{ i[0] }}</td>
+                        <td>{{ i[1] }}</td>
+                        <td>{{ i[2] }}</td>
+                        <td>{{ i[3] }}</td>
+                        <td>{{ i[4] }}</td>
+                        <td>{{ i[5] }}</td>
+                        <td>{{ i[6] }}</td>
+                        <td>{{ i[7] }}</td>
+                        <td>{{ i[8] }}</td>
+                        <td>{{ i[9] }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</body>
+</html>

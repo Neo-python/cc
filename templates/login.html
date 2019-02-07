@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin Template">
+    <meta name="keywords" content="admin dashboard, admin, flat, flat ui, ui kit, app, web app, responsive">
+    <title>CODECLASSROOM.COM - Login</title>
+
+    <!-- Base Styles -->
+    <link href="/static/css/style.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="/static/js/html5shiv.min.js"></script>
+    <script src="/static/js/respond.min.js"></script>
+    <![endif]-->
+
+
+</head>
+  <body class="login-body">
+      <div class="login-logo">
+          <a href="{{ url_for('hello_world') }}"><img src="/static/img/login_logo.png" alt=""/></a>
+      </div>
+      <h2 class="form-heading">登入账户</h2>
+      <div class="container log-row">
+          <form class="form-signin" action="" method="post">
+              <label for="">
+                  {% with message = get_flashed_messages() %}
+                      {% if message %}
+                          {% for i in message %}
+                              <li>{{ i }}</li>
+                          {% endfor %}
+                      {% endif %}
+                  {% endwith %}
+              </label>
+              <div class="login-wrap">
+                  <input type="text" class="form-control" placeholder="帐号" autofocus name="userid">
+                  <input type="password" class="form-control" placeholder="密码" name="password">
+                  <button class="btn btn-lg btn-success btn-block" type="submit">登入</button>
+                  <label class="checkbox-custom check-success">
+                      <input type="checkbox" value="True" id="checkbox1" name="remember">
+                      <label for="checkbox1">记住密码</label>
+                      <a class="pull-right" data-toggle="modal"  href="{{ url_for("admin_bp.forget_pwd") }}"> 忘记密码?</a>
+                  </label>
+{#                  <div class="registration">#}
+{#                      没有账号吗?#}
+{#                      <a class="" href="">创建一个账号</a>#}
+{#                  </div>#}
+              </div>
+          </form>
+          <!-- Modal -->
+          <div aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" id="forgotPass" class="modal fade">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                          <h4 class="modal-title">忘记密码?</h4>
+                      </div>
+                      <div class="modal-body">
+                          <p>在下面输入您的电子邮件地址,重置您的密码。</p>
+                          <input type="text" name="email" placeholder="邮箱" autocomplete="off"
+                                 class="form-control placeholder-no-fix">
+
+                      </div>
+                      <div class="modal-footer">
+                          <button data-dismiss="modal" class="btn btn-default" type="button">取消</button>
+                          <button class="btn btn-success" type="submit">提交</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <!-- modal -->
+      </div>
+      <!--jquery-1.10.2.min-->
+      <!--Bootstrap Js-->
+      <script src="/static/js/bootstrap.min.js"></script>
+
+  </body>
+</html>

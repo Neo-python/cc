@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div id="div-top">
+        <form action="{{ url_for("admin_bp.change_key") }}" id="change_form" method="post">
+            <input type="text" hidden name="key" value="{{ key }}">
+            <div >
+                <input type="password" name="new_pwd" id="new_pwd" class="my_input">
+            </div>
+            <div >
+                <input type="password" name="repeat" id="repeat" class="my_input">
+            </div>
+            <div>
+                <button class="change-btn" id="recovery" type="button">重新输入
+                </button><button class="change-btn" id="submit">提交修改</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+{% block my_script %}
+    <link rel="stylesheet" href="/static/templates/admin-change/forget.css">
+    <script src="/static/js/jquery-3.2.1.min.js"></script>
+    <script src="/static/js/jquery.validate.min.js"></script>
+    <script src="/static/templates/admin-change/forget.js"></script>
+{% endblock %}

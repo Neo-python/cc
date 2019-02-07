@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block body %}
+    <link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
+    <form action="{{ url_for('form_bp.list_modify',uid=obj.id) }}" method="post" style="transform: scale(1.99);text-align: center;margin-top: 15%">
+        <div class="container">
+            <div class="row">
+                <label for="province">省</label>
+                <select name="province" id="province" va="city" onclick="c(this.value,this.id)" >
+                            <option value="0">请选择</option>
+                            <option value="10" {{ 'selected="selected"' if obj.province==10 }}>河北</option>
+                            <option value="23" {{ 'selected="selected"' if obj.province==23 }}>山西</option>
+                </select>
+                <label for="city">市</label>
+                <select name="city" id="city" va="area" onclick="c(this.value,this.id)">
+                    <option value="0">请选择</option>
+                </select>
+                <label for="area">区</label>
+                <select name="area" id="area" >
+                            <option value="0">请选择</option>
+                </select>
+                <label for="user">收货人</label>
+                <input type="text" name="user" value="{{ obj.user }}">
+                <label for="phone">手机</label>
+                <input type="text" name="phone" value="{{ obj.phone }}">
+            </div>
+            <div class="row">
+                <label for="userunit">收货单位</label>
+                <input type="text" name="userunit" id="userunit" style="width: 250px" value="{{ obj.userunit }}">
+                <label for="telephone">电话</label>
+                <input type="text" name="telephone" id="telephone" value="{{ obj.telephone }}">
+                <label for="">付款方式</label>
+                <label for="payment0">现付</label>
+                <input type="radio" name="payment" value="0" id="payment0" {{'checked="checked"' if obj.payment==0  }}>
+                <label for="payment1">提付</label>
+                <input type="radio" name="payment" value="1" id="payment1" {{'checked="checked"' if obj.payment==1  }}>
+            </div>
+            {% set pn = obj.oids.first() %}
+            <div class="row">
+                <label for="productname">货物名称</label>
+                <select name="productname" id="productname" style="width: 157px" onchange="pn(this)">
+                    {% for i in pnlist %}
+                        <option value="{{ i.id }}" {{ 'selected="selected"' if pn.productname.id == i.id }}>{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="count">件数</label>
+                <input type="text" name="count" id="count" style="width: 40px" value="{{ pn.count }}">
+                <label for="measure">重量体积</label>
+                <input type="text" name="measure" id="measure" style="width: 39px" value="{{ pn.measure }}">
+                <label for="measureunit">单位</label>
+                <select name="measureunit" id="measureunit">
+                        <option value="0" {{'selected="selected"' if pn.measureunit==0 }}>吨</option>
+                        <option value="1" {{'selected="selected"' if pn.measureunit==1 }}>方</option>
+                </select>
+                <button type="button" id="plus" onclick=" myplus(this.id)"><i class="fa fa-plus-square"></i></button>
+                <label for="">提货方式</label>
+                <label for="receipt0">自提</label>
+                <input type="radio" name="receipt" value="0" id="receipt0" {{'checked="checked"' if obj.receipt==0  }}>
+                <label for="receipt1">送货</label>
+                <input type="radio" name="receipt" value="1" id="receipt1" {{'checked="checked"' if obj.receipt==1  }}>
+            </div>
+            {% if obj.oids.offset(1).first() %}
+                {% set pn1 = obj.oids.offset(1).first() %}
+            <div class="row">
+                <label for="productname1">货物名称</label>
+                <select name="productname1" id="productname1" style="width: 157px" onchange="pn(this)">
+                    {% for i in pnlist %}
+                        <option value="{{ i.id }}" {{ 'selected="selected"' if pn1.productname.id == i.id }}>{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="count">件数</label>
+                <input type="text" name="count1" id="count" style="width: 40px" value="{{ pn1.count }}">
+                <label for="measure">重量体积</label>
+                <input type="text" name="measure1" id="measure" style="width: 39px" value="{{ pn1.measure }}">
+                <label for="measureunit">单位</label>
+                <select name="measureunit1" id="measureunit1">
+                        <option value="0" {{'selected="selected"' if pn1.measureunit==0 }}>吨</option>
+                        <option value="1" {{'selected="selected"' if pn1.measureunit==1 }}>方</option>
+                </select>
+            </div>
+            {% endif %}
+            <div class="row">
+                <label for="client">发货单位及姓名</label>
+                <input type="text" name="client" id="client" value="{{ obj.client }}">
+                <label for="clientphone">电话</label>
+                <input type="text" name="clientphone" id="clientphone" value="{{ obj.clientphone }}">
+                <label for="price">金额</label>
+                <input type="text" name="price" id="price" style="width: 170px;text-align: right" value="{{ obj.price }}">
+
+            </div>
+            <div class="row">
+                <label for="remarks">备注</label>
+                <textarea name="remarks" id="remarks" cols="43" rows="1" style="vertical-align: top">{{ obj.remarks }}</textarea>
+                <button class="btn btn-success btn-xs" type="button" id="remarksBTN"><i class="fa fa-spinner fa-spin"></i></button>
+                <input type="text" class="date" id="date" name="date" placeholder="{{ obj.createtime.strftime("%Y-%m-%d %H:%M") }}">
+                <button type="submit" class="btn btn-primary btn-xs" style="width: 110px;height: 26px">提交</button>
+            </div>
+        </div>
+    </form>
+    <div id="remarksLIST" hidden style="position: absolute">
+        <ul class="nav nav-pills nav-stacked ">
+            {% if remarks %}
+                {% for i in remarks %}
+                    <li class="btn btn-success">{{ i.text }}</li>
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+    <i id="provinceid" hidden>{{ obj.province_name.area_id }}</i>
+    <i id="cityid" hidden>{{ obj.city_name.area_id }}</i>
+    <i id="areaid" hidden>{{ obj.area_name.area_id if obj.area_name.area_id else "0"}}</i>
+    {% with message = get_flashed_messages() %}
+        {% if message %}
+            {% for i in message %}
+                <p hidden id="message">{{ i }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+
+
+{% block my_script %}
+    <link rel="stylesheet" href="/static/css/ion.calendar.css">
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/moment.zh-cn.js"></script>
+    <script src="/static/js/ion.calendar.min.js"></script>
+    <script src="/static/templates/modify/modify.js"></script>
+{% endblock %}
