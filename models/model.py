@@ -1,11 +1,8 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from models import MD5
-from run import db
+from project_init import db
 import pickle
-
-
-# db = SQLAlchemy()
 
 
 class ADMIN(db.Model):
@@ -118,7 +115,7 @@ class MY_FORM(db.Model):
 
     def __repr__(self):
         return f'id:{self.id} user:{self.user} phone:{self.phone} ' \
-               f'client:{self.client} clientphone:{self.clientphone}'
+            f'client:{self.client} clientphone:{self.clientphone}'
 
 
 class PDN(db.Model):
