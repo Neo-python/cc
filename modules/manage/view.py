@@ -1,8 +1,7 @@
-from manage import manage
+from modules.manage import manage
 from flask import request, render_template, session, jsonify, redirect ,url_for
-from login import login_required
-from run import db
-from models.model import *
+from modules.login import login_required
+from model.models import *
 from sqlalchemy import desc
 
 

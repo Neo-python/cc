@@ -19,7 +19,7 @@
                 </thead>
                 <tbody>
                 {% for i in obj %}
-                    <tr onclick="window.location.href = '/reconciliation/calculation/{{ i.id }}'">
+                    <tr onclick="window.location.href = '../modules/reconciliation/calculation/{{ i.id }}'">
                         <th>{{ i.id }}</th>
                         <td>{{ i.lists }}</td>
                         <td>{{ i.create_time.strftime("%Y-%m-%d %H:%M") }}</td>

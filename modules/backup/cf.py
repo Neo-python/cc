@@ -12,7 +12,7 @@ if today not in List:
 if hour not in os.listdir(path+f"/{today}"):
     os.mkdir(path+f"/{today}/{hour}")
 os.chdir(path+f"/{today}/{hour}")
-copy("/var/www/cc/models/DPM.db", path+f"/{today}/{hour}")
+copy("/var/www/cc/model/DPM.db", path+f"/{today}/{hour}")
 
 for i in List:
     if (datetime.now() - datetime.strptime(i, "%Y-%m-%d")).days >= 2:

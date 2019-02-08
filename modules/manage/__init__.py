@@ -1,3 +1,3 @@
 from flask import Blueprint
 manage = Blueprint("manage", __name__)
-from manage.view import *
+from modules.manage.view import *

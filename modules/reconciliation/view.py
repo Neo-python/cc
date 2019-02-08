@@ -1,11 +1,12 @@
-from reconciliation import reconciliation_bp
-from flask import request, render_template, redirect, url_for, session, jsonify
-from login import login_required, reconciliation_verification
-from models.model import ORDER_FORM, db, MY_FORM, ADMIN, MD5, PDN
 import pickle
-from sqlalchemy import text, desc
 import datetime
+from flask import request, render_template, redirect, url_for, session, jsonify
+from sqlalchemy import text, desc
+from modules.reconciliation import reconciliation_bp
+from modules.login import login_required, reconciliation_verification
+from model.models import ORDER_FORM, db, MY_FORM, Admin, PDN
 from error_log.mylog import error404
+from plugins import common
 
 
 @reconciliation_bp.route('/<int:id>/')
@@ -168,8 +169,8 @@ def clear():
 def verification():
     password = request.form.get("password")
     admin = session.get("admin")
-    user = ADMIN.query.filter(ADMIN.username == admin).first()
-    if MD5(password) == user.verification:
+    user = Admin.query.filter(Admin.username == admin).first()
+    if common.my_md5(password) == user.verification:
         session["verification"] = "verification"
         return redirect(url_for("reconciliation_bp.index"))
     else:

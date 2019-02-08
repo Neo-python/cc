@@ -15,7 +15,7 @@ msg['To'] = _format_addr('管理员 <602049338@qq.com>')
 msg['Subject'] = Header('数据库备份文件……', 'utf-8').encode()
 msg.attach(MIMEText('这是来自数据库的备份文件', 'plain', 'utf-8'))
 
-with open('../models/DPM.db', 'rb') as f:
+with open('../model/DPM.db', 'rb') as f:
     # 设置附件的MIME和文件名，这里是png类型:
     mime = MIMEBase('database', 'db', filename='DPM.db')
     # 加上必要的头信息:

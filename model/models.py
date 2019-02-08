@@ -1,27 +1,47 @@
 from datetime import datetime
-from flask_sqlalchemy import SQLAlchemy
-from models import MD5
+from plugins.common import my_md5
 from project_init import db
 import pickle
 
 
-class ADMIN(db.Model):
-    __tablename__ = 'admin'
-    id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.String, unique=True)
-    password = db.Column(db.String(50))
-    username = db.Column(db.String(20))
-    mail = db.Column(db.String, unique=True)
-    verification = db.Column(db.String)
-    createtime = db.Column(db.DATETIME)
+class Common(object):
 
-    def __init__(self, userid, password, username, mail, verification=None):
-        self.userid = userid
-        self.password = MD5(password)
-        self.username = username
+    def direct_add_(self):
+        """直接添加事务"""
+        db.session.add(self)
+
+    def direct_commit_(self):
+        """直接提交"""
+        self.direct_add_()
+        db.session.commit()
+
+
+class Admin(db.Model):
+    """管理员模型"""
+    __tablename__ = 'admin'
+
+    id = db.Column(db.Integer, primary_key=True)
+    account = db.Column(db.String(length=50), unique=True, comment='管理员账户')
+    password = db.Column(db.String(50), comment='密码')
+    nickname = db.Column(db.String(20), comment='昵称')
+    mail = db.Column(db.String, unique=True, comment='邮箱账户')
+    verification = db.Column(db.String, comment='相当于二级密码')
+    create_time = db.Column(db.DATETIME, onupdate=datetime.now, comment='创建时间')
+
+    def __init__(self, account, password, nickname, mail, verification=None):
+        self.account = account
+        self.password = password
+        self.nickname = nickname
         self.mail = mail
         self.verification = verification
-        self.createtime = datetime.now()
+
+    def encryption_password(self):
+        """加密密码"""
+        self.password = my_md5(self.password)
+
+    def to_dict_(self):
+        """返回dict类型数据"""
+        return {'numbering': self.id, 'user_id': self.account, 'nickname': self.nickname, 'mail': self.mail}
 
     def __repr__(self):
         return f'{self.id} {self.username}'
@@ -194,18 +214,20 @@ class REMARK(db.Model):
         return f"id:{self.id} text:{self.text} sorting:{self.sorting}"
 
 
-class ErrorLog(db.Model):
-    __tablename__ = "error_log"
+class Log(db.Model, Common):
+    __tablename__ = "log"
 
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String)
-    create_time = db.Column(db.DateTime)
+    create_time = db.Column(db.DateTime, default=datetime.now, comment='记录时间')
     status = db.Column(db.Boolean)
+    genre = db.Column(db.SmallInteger, comment='日志类型,0:普通日志,1:错误日志')
 
-    def __init__(self, content=None, status=True):
+    def __init__(self, content=None, status=True, genre=0, *args, **kwargs):
+        super(Log, self).__init__(*args, **kwargs)
         self.content = content
         self.status = status
-        self.create_time = datetime.now()
+        self.genre = genre
 
     def __repr__(self):
         return f"{self.content} : {self.status}"

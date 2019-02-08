@@ -1,13 +1,13 @@
-from flask import Flask, render_template, session, redirect, url_for
+from flask import render_template, session
 from project_init import create_app, db
 
 app = create_app()
 db.init_app(app=app)
 
-from admin import admin_bp
-from my_form import form_bp
-from manage import manage
-from reconciliation import reconciliation_bp
+from modules.admin import admin_bp
+from modules.my_form import form_bp
+from modules.manage import manage
+from modules.reconciliation import reconciliation_bp
 
 app.register_blueprint(admin_bp)
 app.register_blueprint(form_bp)
@@ -17,7 +17,6 @@ app.register_blueprint(reconciliation_bp, url_prefix="/reconciliation")
 
 @app.route('/')
 def hello_world():
-    print('ok')
     username = session.get('admin')
     if username:
         return render_template('base.html', login=username)

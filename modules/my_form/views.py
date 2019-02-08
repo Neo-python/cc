@@ -1,14 +1,13 @@
-from models.model import CITYS, MY_FORM, ORDER_DETALILS, PDN, ORDER_FORM, REMARK, ErrorLog
-from my_form import form_bp
-from flask import render_template, request, jsonify, session, flash, redirect, url_for
-from login import login_required
+from model.models import CITYS, MY_FORM, ORDER_DETALILS, PDN, ORDER_FORM, REMARK, Log
+from modules.my_form import form_bp
+from flask import render_template, request, jsonify, session, redirect, url_for
+from modules.login import login_required
 from run import db
 from sqlalchemy import desc, or_, text
-from my_form.form import OrderForm, TestForm
-from datetime import datetime, date
+from modules.my_form.form import OrderForm
+from datetime import datetime
 import datetime as dt
 from error_log.mylog import write_error
-import pickle
 
 
 @form_bp.route('/form/', methods=['GET', 'POST'])  # 表单页面
@@ -401,5 +400,5 @@ def fuzzy_search():
 
 @form_bp.route('/errlog/')
 def errlog():
-    err = ErrorLog.query.filter(ErrorLog.status).all()
+    err = Log.query.filter(Log.status).all()
     return render_template('errlog.html', err=err)

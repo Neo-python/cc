@@ -19,73 +19,81 @@
     <![endif]-->
 </head>
 <body class="sticky-header sidebar-collapsed">
-    <section>
-        <div class="sidebar-left">
-            <div class="sidebar-left-info">
-                <div class="search-field">  </div>
-                <ul class="nav nav-pills nav-stacked side-navigation">
-                    <li><a href="/"><i class="fa fa-home"></i> <span style="font-size: 20px">首页</span></a></li>
-                    <li class="menu-list">
-                    <li><a href="{{ url_for('form_bp.my_form') }}"><i class="fa fa-laptop"></i><span style="font-size: 20px">地址</span></a></li>
-                    <li><a href="{{ url_for('form_bp.show_list') }}"><i class="fa fa-bars"></i><span style="font-size: 20px">运单列表</span></a></li>
-                    <li><a href="{{ url_for('reconciliation_bp.index') }}"><i class="fa  fa-calculator"></i><span style="font-size: 20px">对账</span></a></li>
-                    <li><a href="{{ url_for('manage.manage_func') }}"><i class="fa fa-cog"></i><span style="font-size: 20px">管理设置</span></a></li>
-                </ul>
+<section>
+    <div class="sidebar-left">
+        <div class="sidebar-left-info">
+            <div class="search-field"></div>
+            <ul class="nav nav-pills nav-stacked side-navigation">
+                <li><a href="/"><i class="fa fa-home"></i> <span style="font-size: 20px">首页</span></a></li>
+                <li class="menu-list">
+                <li><a href="{{ url_for('form_bp.my_form') }}"><i class="fa fa-laptop"></i><span
+                        style="font-size: 20px">地址</span></a></li>
+                <li><a href="{{ url_for('form_bp.show_list') }}"><i class="fa fa-bars"></i><span
+                        style="font-size: 20px">运单列表</span></a></li>
+                <li><a href="{{ url_for('reconciliation_bp.index') }}"><i class="fa  fa-calculator"></i><span
+                        style="font-size: 20px">对账</span></a></li>
+                <li><a href="{{ url_for('manage.manage_func') }}"><i class="fa fa-cog"></i><span
+                        style="font-size: 20px">管理设置</span></a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="body-content">
+        <div class="header-section ">
+            <div class="logo dark-logo-bg hidden-xs hidden-sm">
+                <a href="/">
+                    <img src="/static/img/logo-icon.png" alt="">
+                    <span class="brand-name">Neo的世界</span>
+                </a>
+            </div>
+            <div class="icon-logo dark-logo-bg hidden-xs hidden-sm">
+                <a href="/">
+                    <img src="/static/img/logo-icon.png" alt="">
+                </a>
+            </div>
+            <a class="toggle-btn"><i class="fa fa-outdent"></i></a>
+            <div class="notification-wrap">
+                {% if login %}
+                    <div class="right-notification">
+                        <ul class="notification-menu">
+                            <li>
+                                <form class="search-content" action="index.html" method="post">
+                                    <input type="text" class="form-control" name="keyword" placeholder="Search...">
+                                </form>
+                            </li>
+                            <li>
+                                <a href="javascript:;" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                    <img src="/static/img/timg.jpg" alt=""><span>{{ login }}</span>
+                                    <span class=" fa fa-angle-down"></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-usermenu purple pull-right">
+                                    <li><a href="{{ url_for('admin_bp.change_key') }}"><i
+                                            class="fa fa-lock pull-right"></i> 修改口令</a></li>
+                                    <li><a href="{{ url_for('admin_bp.change_password') }}"><i
+                                            class="fa fa-lock pull-right"></i> 修改登入密码</a></li>
+                                    <li><a href="/dropout/"><i class="fa fa-sign-out pull-right"></i> 退出登录</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="right-notification">
+                        <a href="{{ url_for('admin_bp.login') }}">
+                            <button class="btn btn-lg btn-success" style="margin: 7px 5px 0 0">登入</button>
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
-        <div class="body-content">
-            <div class="header-section ">
-                <div class="logo dark-logo-bg hidden-xs hidden-sm">
-                    <a href="/">
-                        <img src="/static/img/logo-icon.png" alt="">
-                        <span class="brand-name">Neo的世界</span>
-                    </a>
-                </div>
-                <div class="icon-logo dark-logo-bg hidden-xs hidden-sm">
-                    <a href="/">
-                        <img src="/static/img/logo-icon.png" alt="">
-                    </a>
-                </div>
-                <a class="toggle-btn"><i class="fa fa-outdent"></i></a>
-                <div class="notification-wrap">
-                    {% if login %}
-                 <div class="right-notification">
-                    <ul class="notification-menu">
-                        <li>
-                            <form class="search-content" action="index.html" method="post">
-                                <input type="text" class="form-control" name="keyword" placeholder="Search...">
-                            </form>
-                        </li>
-                        <li>
-                            <a href="javascript:;" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                                <img src="/static/img/timg.jpg" alt=""><span>{{ login }}</span>
-                                <span class=" fa fa-angle-down"></span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-usermenu purple pull-right">
-                                <li><a href="{{ url_for('admin_bp.change_key') }}"><i class="fa fa-lock pull-right"></i> 修改口令</a></li>
-                                <li><a href="{{ url_for('admin_bp.change_password') }}"><i class="fa fa-lock pull-right"></i> 修改登入密码</a></li>
-                                <li><a href="/dropout/"><i class="fa fa-sign-out pull-right"></i> 退出登录</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-                    {% else %}
-                        <div class="right-notification">
-                            <a href="/login"><button class="btn btn-lg btn-success" style="margin: 7px 5px 0 0">登入</button></a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-                {% block body %}
+        {% block body %}
 
-                {% endblock %}
-            <div class="sb-slidebar sb-right sb-style-overlay">
+        {% endblock %}
+        <div class="sb-slidebar sb-right sb-style-overlay">
             <div class="right-bar">
-            <span class="r-close-btn sb-close"><i class="fa fa-times"></i></span>
-            </div>
+                <span class="r-close-btn sb-close"><i class="fa fa-times"></i></span>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 <script src="/static/js/jquery-1.10.2.min.js"></script>
 <script src="/static/js/jquery-migrate.js"></script>
 <script src="/static/js/bootstrap.min.js"></script>
