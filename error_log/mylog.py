@@ -19,7 +19,7 @@ def error404(err=None):
         return render_template("404.html", err=err)
 
 
-class SetError():
+class SetError:
 
     def __init__(self, title='服务器发生错误', head='错误未知', tail='秒后,回到首页.', url=None, seconds=3):
         self.title = title

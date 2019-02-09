@@ -23,8 +23,7 @@ def login():
             if admin:  # 证明验证完成
                 session['admin'] = admin.to_dict_()  # 写入session状态
                 return redirect('/')  # 跳转主页
-        else:
-            return render_template('login.html')  # 返回登录页
+        return render_template('login.html')  # 返回登录页
 
 
 @admin_bp.route('/verify_account/', methods=['POST'])
@@ -34,6 +33,7 @@ def verify_account():
     account = request.form.get('account')
     password = request.form.get('password')
     admin = Admin.query.filter(Admin.account == account, Admin.password == common.my_md5(password)).first()  # 验证数据
+
     if admin:  # 证明验证成功
         session['admin'] = admin.to_dict_()  # 写入session状态
         resp = make_response(redirect('/'))  # 构建响应
@@ -64,45 +64,40 @@ def drop_out():
 @admin_bp.route('/change/key/', methods=["GET", "POST"])
 @login_required
 def change_key():
-    """
-    id:admin表id号,在登入时已经存在session
-    original_pwd: 原来的密码
-    new_pwd:新密码
-    modify_obj:准备修改的数据库对象
-    :return:
-    """
+    """二级密码更改"""
     if request.method == "GET":
-        return render_template('admin-change-key.html', login=session.get('admin'))
+        return render_template('admin-change-key.html')
+
+    #  post 请求,进入修改二级密码流程
+    account = session.get('admin').get('account')
+    new_pwd = request.form.get('new_pwd')
+    key = request.form.get('key')
+    if key:
+        v_obj = VALID.query.filter(VALID.id == id).first()
+        if v_obj.text == key and (datetime.now() - v_obj.createtime).seconds < 600:
+            modify_obj = Admin.query.filter(Admin.id == id).first()
+            modify_obj.verification = common.my_md5(new_pwd)
+            v_obj.createtime = v_obj.createtime - timedelta(seconds=601)
+            db.session.commit()
+            session.pop('verification', None)
+            return render_template('success.html')
+        return SetError().err404()
     else:
-        id = session.get('userid')
-        new_pwd = request.form.get('new_pwd')
-        key = request.form.get('key')
-        if key:
-            v_obj = VALID.query.filter(VALID.id == id).first()
-            if v_obj.text == key and (datetime.now() - v_obj.createtime).seconds < 600:
-                modify_obj = Admin.query.filter(Admin.id == id).first()
+        err = SetError(url=url_for('admin_bp.change_key'))
+        original_pwd = request.form.get("original_pwd")
+        if original_pwd and new_pwd:
+            pwd = common.my_md5(original_pwd)
+            modify_obj = Admin.query.filter(Admin.id == id, Admin.verification == pwd).first()
+            if modify_obj:
                 modify_obj.verification = common.my_md5(new_pwd)
-                v_obj.createtime = v_obj.createtime - timedelta(seconds=601)
                 db.session.commit()
                 session.pop('verification', None)
                 return render_template('success.html')
-            return SetError().err404()
-        else:
-            err = SetError(url=url_for('admin_bp.change_key'))
-            original_pwd = request.form.get("original_pwd")
-            if original_pwd and new_pwd:
-                pwd = common.my_md5(original_pwd)
-                modify_obj = Admin.query.filter(Admin.id == id, Admin.verification == pwd).first()
-                if modify_obj:
-                    modify_obj.verification = common.my_md5(new_pwd)
-                    db.session.commit()
-                    session.pop('verification', None)
-                    return render_template('success.html')
-                else:
-                    err.head = '原口令错误,请重试'
-                    return err.err404()
             else:
+                err.head = '原口令错误,请重试'
                 return err.err404()
+        else:
+            return err.err404()
 
 
 @admin_bp.route('/change/password/', methods=["GET", "POST"])
