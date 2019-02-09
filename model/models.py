@@ -41,7 +41,7 @@ class Admin(db.Model):
 
     def to_dict_(self):
         """返回dict类型数据"""
-        return {'numbering': self.id, 'user_id': self.account, 'nickname': self.nickname, 'mail': self.mail}
+        return {'numbering': self.id, 'account': self.account, 'nickname': self.nickname, 'mail': self.mail}
 
     def __repr__(self):
         return f'{self.id} {self.username}'

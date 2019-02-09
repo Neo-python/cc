@@ -1,22 +1,22 @@
 {% extends 'base.html' %}
 {% block body %}
     <div id="div-top">
-        <form action="{{ url_for("admin_bp.change_key") }}" id="change_form" method="post">
-            <div >
-                <input type="password" name="original_pwd" id="original" class="my_input">
-            </div>
-            <div >
+        <form action="{{ url_for("admin_bp.csp_change") }}" id="change_form" method="post">
+            <input type="text" hidden name="token" value="{{ token }}">
+            <div>
                 <input type="password" name="new_pwd" id="new_pwd" class="my_input">
             </div>
-            <div >
+
+            <div>
                 <input type="password" name="repeat" id="repeat" class="my_input">
             </div>
             <div>
-                <button class="change-btn" id="recovery" type="button">重新输入
-                </button><button class="change-btn" id="submit">提交修改</button>
+                <button class="change-btn" id="submit">提交修改</button>
             </div>
             <div>
-                <button class="change-btn" id="forget" type="button" onclick="window.location = '{{ url_for("admin_bp.forget_key") }}'">忘记口令?</button>
+                <button class="change-btn" id="forget" type="button"
+                        onclick="window.location = '{{ url_for("admin_bp.forget_key") }}'">忘记口令?
+                </button>
             </div>
         </form>
     </div>

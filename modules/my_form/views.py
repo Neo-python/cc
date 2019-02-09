@@ -1,7 +1,7 @@
 from model.models import CITYS, MY_FORM, ORDER_DETALILS, PDN, ORDER_FORM, REMARK, Log
 from modules.my_form import form_bp
 from flask import render_template, request, jsonify, session, redirect, url_for
-from modules.login import login_required
+from modules.login import logging_in
 from run import db
 from sqlalchemy import desc, or_, text
 from modules.my_form.form import OrderForm
@@ -11,7 +11,7 @@ from error_log.mylog import write_error
 
 
 @form_bp.route('/form/', methods=['GET', 'POST'])  # 表单页面
-@login_required
+@logging_in
 def my_form():
     of = OrderForm()  # 表单
     if request.method == "GET":
@@ -75,14 +75,14 @@ def recording():
 
 
 @form_bp.route('/detection/', methods=['GET'])
-@login_required
+@logging_in
 def detection():
     phone = request.args.get('phone')
     return 'ok'
 
 
 @form_bp.route('/province/', methods=['POST', "GET"])
-@login_required
+@logging_in
 def province():
     id = request.get_json('area_id')['area_id']
     data = CITYS.query.with_entities(CITYS.area_id, CITYS.area_name) \
@@ -92,7 +92,7 @@ def province():
 
 
 @form_bp.route('/showlist/', methods=["GET", "POST"])
-@login_required
+@logging_in
 def show_list():
     if request.method == "GET":
         remarks = REMARK.query.order_by(REMARK.sorting).all()
@@ -174,7 +174,7 @@ def printer_list():
 
 
 @form_bp.route('/del/<int:uid>/')
-@login_required
+@logging_in
 def list_del(uid=None):
     """
     obj: 准备的删除对象
@@ -209,7 +209,7 @@ def list_del(uid=None):
 
 
 @form_bp.route('/modify/<int:uid>/', methods=["GET", "POST"])
-@login_required
+@logging_in
 def list_modify(uid=None):
     if request.method == "GET":
         try:
@@ -261,7 +261,7 @@ def list_modify(uid=None):
 
 
 @form_bp.route('/search/', methods=["POST"])
-@login_required
+@logging_in
 def search():
     form = request.get_json(force=True)
     d = {}
@@ -351,7 +351,7 @@ val="{i.id}">{i.id}""") if not i.reconciliation_id else "&nbsp;&nbsp;&nbsp;&nbsp
 
 
 @form_bp.route('/page/')
-@login_required
+@logging_in
 def page():
     page = int(request.args.get('page'))
     pages_max = [i for i in MY_FORM.query.paginate(page, per_page=10).iter_pages()][-1]
@@ -380,7 +380,7 @@ def page():
 
 
 @form_bp.route('/fuzzysearch/')
-@login_required
+@logging_in
 def fuzzy_search():
     py = request.args.get('py')
     pys = CITYS.query.filter(CITYS.py_name.like(py + '%')).all()

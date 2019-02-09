@@ -3,7 +3,7 @@ import datetime
 from flask import request, render_template, redirect, url_for, session, jsonify
 from sqlalchemy import text, desc
 from modules.reconciliation import reconciliation_bp
-from modules.login import login_required, reconciliation_verification
+from modules.login import logging_in, reconciliation_verification
 from model.models import ORDER_FORM, db, MY_FORM, Admin, PDN
 from error_log.mylog import error404
 from plugins import common
@@ -11,7 +11,7 @@ from plugins import common
 
 @reconciliation_bp.route('/<int:id>/')
 @reconciliation_bp.route('/')
-@login_required
+@logging_in
 @reconciliation_verification
 def index(id=1):
     db_obj = ORDER_FORM.query.order_by(
@@ -35,7 +35,7 @@ def index(id=1):
 
 
 @reconciliation_bp.route('/calculation/<int:uid>/')
-@login_required
+@logging_in
 @reconciliation_verification
 def calculation(uid=None):
     """
@@ -60,7 +60,7 @@ def calculation(uid=None):
 
 
 @reconciliation_bp.route('/result/', methods=["POST"])
-@login_required
+@logging_in
 @reconciliation_verification
 def reconciliation_result():
     obj = request.form.to_dict()

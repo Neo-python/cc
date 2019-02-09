@@ -1,7 +1,7 @@
 from flask import session, request, redirect, render_template
 
 
-def login_required(func):
+def logging_in(func):
     def inner(*args, **kwargs):
         if session.get('admin'):  # 判断登入状态,如果session有admin则正常执行函数
             return func(*args, **kwargs)

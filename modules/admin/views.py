@@ -1,13 +1,12 @@
-from datetime import datetime, timedelta
+import datetime
 from flask import render_template, request, redirect, flash, session, make_response, url_for
 from modules.admin import admin_bp
 from model.models import Admin, VALID, Log
 from mail.qqmail import send
 from project_init import db
-from modules.admin.plugins import CookieToken
+from modules.admin.plugins import Token
 from plugins import common
-from error_log.mylog import SetError
-from modules.login import login_required
+from modules.login import logging_in
 
 
 @admin_bp.route('/login/', methods=['GET'])
@@ -18,8 +17,8 @@ def login():
     else:
         token = request.cookies.get('token')
         if token:  # 在未能获取cookie的情况下,直接返回登录页面
-            token = CookieToken.string_decrypt(token=token)  # 解密token, 得到account与deadline两项加密数据
-            admin = token.verify()  # 验证account与deadline验证成功将返回Admin数据模型
+            token = Token.string_decrypt(token=token)  # 解密token, 得到account与deadline两项加密数据
+            admin = token.verify_account()  # 验证account与deadline验证成功将返回Admin数据模型
             if admin:  # 证明验证完成
                 session['admin'] = admin.to_dict_()  # 写入session状态
                 return redirect('/')  # 跳转主页
@@ -38,9 +37,9 @@ def verify_account():
         session['admin'] = admin.to_dict_()  # 写入session状态
         resp = make_response(redirect('/'))  # 构建响应
         if request.form.get('remember') == 'True':  # 用户需要记住密码
-            token = CookieToken(account=admin.account, deadline=datetime.now() + timedelta(days=7))  # 将账户与cookie期限加密
-            resp.set_cookie('token', token.encryption_to_string(),
-                            expires=datetime.now() + timedelta(days=7))  # cookie加入响应
+            deadline = Token.set_deadline({'days': 7})  # 过期时间为7天
+            token = Token(admin.account, deadline=deadline)  # 将账户与cookie期限加密
+            resp.set_cookie('token', token.encryption_to_string(), expires=deadline)  # cookie加入响应
 
         send('message', message=f"登入者帐号{account}已成功登入ip:{ip}")  # 发送邮件通知
         Log(f"登入者帐号{account}已成功登入"f"ip:{ip}").direct_commit_()  # 记录日志
@@ -61,49 +60,68 @@ def drop_out():
     return resp
 
 
-@admin_bp.route('/change/key/', methods=["GET", "POST"])
-@login_required
-def change_key():
-    """二级密码更改"""
-    if request.method == "GET":
-        return render_template('admin-change-key.html')
+# csp:change sub password 更改二级密码
+@admin_bp.route('/csp/verify/', methods=["GET"])
+@logging_in
+def csp_verify_page():
+    """验证旧二级密码页"""
+    return render_template('admin/admin-change-key.html')
 
-    #  post 请求,进入修改二级密码流程
-    account = session.get('admin').get('account')
-    new_pwd = request.form.get('new_pwd')
-    key = request.form.get('key')
-    if key:
-        v_obj = VALID.query.filter(VALID.id == id).first()
-        if v_obj.text == key and (datetime.now() - v_obj.createtime).seconds < 600:
-            modify_obj = Admin.query.filter(Admin.id == id).first()
-            modify_obj.verification = common.my_md5(new_pwd)
-            v_obj.createtime = v_obj.createtime - timedelta(seconds=601)
-            db.session.commit()
-            session.pop('verification', None)
-            return render_template('success.html')
-        return SetError().err404()
-    else:
-        err = SetError(url=url_for('admin_bp.change_key'))
-        original_pwd = request.form.get("original_pwd")
-        if original_pwd and new_pwd:
-            pwd = common.my_md5(original_pwd)
-            modify_obj = Admin.query.filter(Admin.id == id, Admin.verification == pwd).first()
-            if modify_obj:
-                modify_obj.verification = common.my_md5(new_pwd)
-                db.session.commit()
-                session.pop('verification', None)
-                return render_template('success.html')
-            else:
-                err.head = '原口令错误,请重试'
-                return err.err404()
-        else:
-            return err.err404()
+
+@admin_bp.route('/csp/verify/', methods=['POST'])
+@logging_in
+def csp_verify():
+    """验证旧二级密码"""
+    original = request.form.get('original_pwd')  # 获取用户输入的旧的二级密码
+    account = session['admin'].get('account')  # 获取当前用户账号信息
+    if Admin.query.filter_by(account=account, verification=common.my_md5(original)).first():  # 确认旧二级密码
+        # 设定token,防止用户使用登录cookie破解,account加入salt -> __csp__ token有效期为10分钟
+        token = Token(f'__csp__{account}', deadline=Token.set_deadline({'minutes': 10}))
+        return render_template('admin/admin-change-key-input.html', token=token.encryption_to_string())
+    else:  # 校验失败 回到校验页面.
+        return redirect(url_for('admin_bp.csp_verify_page'))
+
+
+@admin_bp.route('/csp/change/', methods=['POST'])
+@logging_in
+def csp_change():
+    """修改二级密码"""
+    token = Token.string_decrypt(token=request.form.get('token'))
+    if not token.verify_csp():  # 验证token,也获取加盐后的account
+        return 'token invalid'
+    pwd = request.form.get('new_pwd')
+
+    account = token.original_text.replace('__csp__', '')  # 获得去盐后的账户
+    assert account == session['admin']['account'], '申请账户与当前账户一致,防止篡改他人二级密码'
+    # 修改二级密码,提交事务
+    Admin.query.filter_by(account=account).update({'verification': common.my_md5(pwd)})
+    db.session.commit()
+    return common.TransitionPage(title='二级密码变更成功', head='操作完成', seconds=10).transition()
+
+
+@admin_bp.route('/csp/retrieve/input/', methods=['GET'])
+def csp_retrieve_input():
+    """通过邮件链接进入,忘记二级密码,输入新二级密码页面"""
+    return render_template('admin/admin-change-key-input.html', token=request.args.get('token'))
+
+
+@admin_bp.route('/csp/retrieve/', methods=['GET'])
+@logging_in
+def csp_retrieve():
+    """处理 -> 忘记二级密码,申请修改请求
+    生成token -> 获取当前账户 -> 得到账户绑定邮箱 -> 发送修改页链接
+    """
+    account = session['admin'].get('account')  # 获取当前用户账号信息
+    token = Token(f'__csp__{account}', deadline=Token.set_deadline({'minutes': 30})).encryption_to_string()
+    send(mode='message', message=url_for('admin_bp.csp_retrieve_input', token=token, _external=True),
+         to='g602049338@icloud.com')
+    return common.TransitionPage(title='邮件发送成功,请到邮箱中查看', head='操作完成', seconds=15).transition()
 
 
 @admin_bp.route('/change/password/', methods=["GET", "POST"])
 def change_password():
     if request.method == "GET":
-        return render_template('admin-change-password.html', login=session.get('admin'))
+        return render_template('admin/admin-change-password.html', login=session.get('admin'))
     else:
         key = request.form.get('key')
         mail = request.form.get("mail")
@@ -113,7 +131,7 @@ def change_password():
             v_obj = VALID.query.filter(VALID.userid == modify_obj.id).first()
             if v_obj.text == key and (datetime.now() - v_obj.createtime).seconds < 600:
                 modify_obj.password = common.my_md5(new_pwd)
-                v_obj.createtime = v_obj.createtime - timedelta(seconds=601)
+                v_obj.createtime = v_obj.createtime - datetime.timedelta(seconds=601)
                 db.session.commit()
                 session.pop('admin', None)
                 session.pop('userid', None)
@@ -121,9 +139,9 @@ def change_password():
                 resp.set_cookie('username', '', max_age=-1)
                 return resp
             else:
-                return SetError(head="'链接超时,请重新请求.'").err404()
+                return common.TransitionPage(head="'链接超时,请重新请求.'").transition()
         else:
-            err = SetError(url=url_for('admin_bp.change_password'))
+            err = common.TransitionPage(url=url_for('admin_bp.change_password'))
             id = session.get('userid')
             original_pwd = request.form.get("original_pwd")
             if original_pwd and new_pwd:
@@ -140,27 +158,27 @@ def change_password():
                 else:
                     err.head = '原密码错误,请重试'
                     err.url = url_for("admin_bp.change_password")
-                    return err.err404()
+                    return err.transition()
             else:
-                return err.err404()
+                return err.transition()
 
 
 @admin_bp.route('/forget/key/')
 @admin_bp.route('/forget/key/<key>/')
-@login_required
+@logging_in
 def forget_key(key=None):
     userid = session.get('userid')
-    err = SetError()
+    err = common.TransitionPage()
     if key:
         v_obj = VALID.query.filter(VALID.userid == userid).first()
         if v_obj:
             if v_obj.text == key and (datetime.now() - v_obj.createtime).seconds < 600:
-                return render_template('admin-forget-key.html', login=session.get('admin'), key=key)
+                return render_template('admin/admin-forget-key.html', login=session.get('admin'), key=key)
             else:
                 err.head = '链接超时,请重新请求.'
-                return err.err404()
+                return err.transition()
         else:
-            return err.err404()
+            return err.transition()
     else:
         import random
         text = ""
@@ -201,14 +219,14 @@ def forget_pwd(pwd=None, mail=None):
             db.session.commit()
             return render_template('success.html')
         else:
-            return SetError(head="邮箱错误,请确认后重试.").err404()
+            return common.TransitionPage(head="邮箱错误,请确认后重试.").transition()
     else:
         if pwd and mail:
             mail_obj = Admin.query.filter(Admin.mail == mail).first()
             v_obj = VALID.query.filter(VALID.userid == mail_obj.id).first()
             if v_obj.text == pwd and (datetime.now() - v_obj.createtime).seconds < 600:
-                return render_template('admin-change-password.html', key=pwd, forget=True, mail=mail)
+                return render_template('admin/admin-change-password.html', key=pwd, forget=True, mail=mail)
             else:
-                return SetError(head='链接超时,请重新请求.').err404()
+                return common.TransitionPage(head='链接超时,请重新请求.').transition()
         else:
-            return render_template("admin-forget-pwd.html")
+            return render_template("admin/admin-forget-pwd.html")

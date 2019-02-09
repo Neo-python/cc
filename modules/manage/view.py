@@ -1,18 +1,18 @@
 from modules.manage import manage
 from flask import request, render_template, session, jsonify, redirect ,url_for
-from modules.login import login_required
+from modules.login import logging_in
 from model.models import *
 from sqlalchemy import desc
 
 
 @manage.route('/manage/')
-@login_required
+@logging_in
 def manage_func():
     return render_template("manage.html", login=session.get('admin'))
 
 
 @manage.route('/manage/productname/')
-@login_required
+@logging_in
 def product_name():
     productname =PDN.query.order_by(PDN.sorting).all()
     obj = {}
@@ -22,7 +22,7 @@ def product_name():
 
 
 @manage.route('/manage/sorting/', methods=["GET", "POST"])
-@login_required
+@logging_in
 def productname_sorting():
     if request.method == "GET":
         sorting = PDN.query.with_entities(PDN.name, PDN.sorting, PDN.id).order_by(PDN.sorting).all()
@@ -41,7 +41,7 @@ def productname_sorting():
 
 
 @manage.route('/manage/newproductname/')
-@login_required
+@logging_in
 def new_product():
     sorting = PDN.query.order_by(desc(PDN.sorting)).first().sorting + 1
     new_product_name = request.args.get('NewProductName')
@@ -52,7 +52,7 @@ def new_product():
 
 
 @manage.route('/manage/productdelete/', methods=["POST"])
-@login_required
+@logging_in
 def product_delete():
     delete_id = request.get_json('ProductName')
     db.session.delete(PDN.query.filter(PDN.id == delete_id.get('ProductName')).first())
@@ -61,7 +61,7 @@ def product_delete():
 
 
 @manage.route('/manage/remark/sorting/', methods=["GET", "POST"])
-@login_required
+@logging_in
 def remark_sorting():
     if request.method == "GET":
         objs = REMARK.query.with_entities(REMARK.id, REMARK.text, REMARK.sorting).order_by(REMARK.sorting).all()

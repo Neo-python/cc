@@ -26,9 +26,9 @@
       <section class="error-wrapper">
           <i class="icon-404"></i>
           <div class="text-center">
-              <h2 class="green-bg">服务器错误</h2>
+              <h2 class="green-bg">{{ err.title }}</h2>
           </div>
-          <p id="text">服务器发生错误</p>
+          <p id="text">{{ err.text_head }}</p>
           <a href="/" class="back-btn">返回首页</a>
       </section>
 
@@ -36,13 +36,13 @@
 <script>
     $(document).ready(function () {
         setTimeout(showtime,1000);
-        var second = 3;
+        var second = {{ err.seconds }};
        function showtime() {
-           if(second == 0){
+           if(second === 0){
                window.location = "/";
                clearInterval(time);
            };
-           $("#text").html("服务器发生错误" + "<br>" + second + "秒后返回");
+           $("#text").html("{{ err.text_head }}" + "<br>" + second + "秒后返回");
            second--;
            setTimeout(showtime,1000);
        };

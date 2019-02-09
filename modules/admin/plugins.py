@@ -4,17 +4,29 @@ from plugins import common
 from model.models import Admin
 
 
-class CookieToken:
+class Token:
     """登录缓存秘钥"""
 
-    def __init__(self, account: str, deadline: datetime.datetime):
-        self.account = account
+    def __init__(self, original_text: str, deadline: datetime.datetime):
+        """
+        :param original_text: token信息,一般情况为账户
+        :param deadline:
+        """
+        self.original_text = original_text
         self.deadline = deadline
+
+    @staticmethod
+    def set_deadline(deadline: dict):
+        """快速设置期限
+        :param deadline: dict类型,example:{'days':-1} or {'seconds':10}
+        :return:
+        """
+        return datetime.datetime.now() + datetime.timedelta(**deadline)
 
     def encryption(self) -> bytes:
         """加密"""
         keys = common.RsaKeys()
-        message = f'{self.account},{self.deadline.strftime("%Y-%m-%d %H:%M:%S")}'
+        message = f'{self.original_text},{self.deadline.strftime("%Y-%m-%d %H:%M:%S")}'
         token = rsa.encrypt(message.encode(), keys.public)
         return token
 
@@ -27,18 +39,27 @@ class CookieToken:
         """解密"""
         keys = common.RsaKeys()
         message = rsa.decrypt(crypto=token, priv_key=keys.private).decode()
-        account, deadline = message.split(',')
-        return CookieToken(account=account, deadline=datetime.datetime.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
+        original_text, deadline = message.split(',')
+        return Token(original_text=original_text, deadline=datetime.datetime.strptime(deadline, "%Y-%m-%d %H:%M:%S"))
 
     @staticmethod
     def string_decrypt(token: str):
         """utf8格式内容解密"""
-        return CookieToken.decrypt(base64.b64decode(token.encode()))
+        return Token.decrypt(base64.b64decode(token.encode()))
 
-    def verify(self):
+    def verify_account(self):
         """验证账户与期限"""
         now = datetime.datetime.now()
         if now < self.deadline:
-            return Admin.query.filter_by(account=self.account).first()
+            return Admin.query.filter_by(account=self.original_text).first()
+        else:
+            return False
+
+    def verify_csp(self):
+        """验证二级密码修改权限"""
+        now = datetime.datetime.now()
+
+        if now < self.deadline:
+            return Admin.query.filter_by(account=self.original_text.replace('__csp__', '')).first()
         else:
             return False

@@ -9,8 +9,8 @@ import smtplib
 import config
 
 
-def send(status='database or message', message=None, to="1026486983@qq.com"):
-    serverip = 'smtp.163.com'
+def send(mode: str = 'database or message', message: str = None, to: str = "1026486983@qq.com") -> bool:
+    server_ip = 'smtp.163.com'
     uid = config.emailId
     password = config.emailPassword
 
@@ -18,7 +18,7 @@ def send(status='database or message', message=None, to="1026486983@qq.com"):
         name, addr = parseaddr(s)
         return formataddr((Header(name, 'utf-8').encode(), addr))
 
-    if status == 'database':
+    if mode == 'database':
         msg = MIMEMultipart()
         msg.attach(MIMEText('这是来自数据库的备份文件', 'plain', 'utf-8'))
         with open('./model/DPM.db', 'rb') as f:
@@ -34,25 +34,26 @@ def send(status='database or message', message=None, to="1026486983@qq.com"):
             encoders.encode_base64(mime)
             # 添加到MIMEMultipart:
             msg.attach(mime)
-    elif status == 'message':
+    elif mode == 'message':
         if message:
             msg = MIMEText(message, 'plain', 'utf-8')
         else:
             msg = MIMEText('数据备份功能已开启', 'plain', 'utf-8')
     else:
         return False
-    msg['From'] = _format_addr('CC <g602049338@163.com>')
-    msg['To'] = _format_addr('管理员 <602049338@qq.com>')
+    msg['From'] = _format_addr(f'CC <{config.emailId}>')
+    msg['To'] = _format_addr(f'管理员 <{to}>')
     msg['Subject'] = Header('CC服务器发来的信息……', 'utf-8').encode()
     try:
-        server = smtplib.SMTP_SSL(serverip, 465)
+        server = smtplib.SMTP_SSL(server_ip, 465)
         server.set_debuglevel(1)
-        # server.connect(serverip, 465)
         server.login(uid, password)
         server.sendmail(uid, to, msg.as_string())
         server.quit()
+        return True
     except BaseException as err:
         print(err)
+        return False
 
 
 one = {"status": True}
