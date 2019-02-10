@@ -9,14 +9,21 @@ class Common(object):
     def direct_add_(self):
         """直接添加事务"""
         db.session.add(self)
+        return self
 
     def direct_commit_(self):
         """直接提交"""
         self.direct_add_()
         db.session.commit()
+        return self
+
+    def direct_update(self):
+        """直接更新"""
+        db.session.commit()
+        return self
 
 
-class Admin(db.Model):
+class Admin(db.Model, Common):
     """管理员模型"""
     __tablename__ = 'admin'
 
@@ -38,6 +45,7 @@ class Admin(db.Model):
     def encryption_password(self):
         """加密密码"""
         self.password = my_md5(self.password)
+        return self
 
     def to_dict_(self):
         """返回dict类型数据"""
@@ -45,22 +53,6 @@ class Admin(db.Model):
 
     def __repr__(self):
         return f'{self.id} {self.username}'
-
-
-class VALID(db.Model):
-    __tablename__ = 'valid'
-    id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.Integer, unique=True)
-    text = db.Column(db.String)
-    createtime = db.Column(db.DateTime)
-
-    def __inif__(self, userid, text, createtime):
-        self.userid = userid
-        self.text = text
-        self.createtime = createtime
-
-    def __repr__(self):
-        return f'{self.id}:{self.text}:{self.createtime}'
 
 
 class CITYS(db.Model):
@@ -138,8 +130,9 @@ class MY_FORM(db.Model):
             f'client:{self.client} clientphone:{self.clientphone}'
 
 
-class PDN(db.Model):
-    __tablename__ = 'productname'
+class Article(db.Model, Common):
+    __tablename__ = 'article'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     sorting = db.Column(db.Integer, unique=True)
@@ -151,19 +144,23 @@ class PDN(db.Model):
     def __repr__(self):
         return f'{self.name}'
 
+    def to_dict_(self):
+        """返回dict类型数据"""
+        return {column.name: getattr(self, column.name, '') for column in self.__table__._columns}
+
 
 class ORDER_DETALILS(db.Model):
     __tablename__ = 'orderdetalils'
 
     id = db.Column(db.Integer, primary_key=True)
     oid = db.Column(db.Integer, db.ForeignKey('my_form.id'))  # 订单id
-    pid = db.Column(db.Integer, db.ForeignKey('productname.id'))  # 产品类型id
+    pid = db.Column(db.Integer, db.ForeignKey('article.id'))  # 产品类型id
     count = db.Column(db.Integer)
     measure = db.Column(db.Integer)
     measureunit = db.Column(db.Integer)
 
     oder_id = db.relationship('MY_FORM', backref=db.backref('oids', lazy='dynamic'), foreign_keys=[oid])
-    productname = db.relationship("PDN", backref=db.backref('pids', lazy='dynamic'), foreign_keys=[pid])
+    productname = db.relationship("Article", backref=db.backref('pids', lazy='dynamic'), foreign_keys=[pid])
 
     def __init__(self, oid, pid, count, measure, measureunit):
         self.oid = oid

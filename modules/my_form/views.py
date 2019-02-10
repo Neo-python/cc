@@ -1,4 +1,4 @@
-from model.models import CITYS, MY_FORM, ORDER_DETALILS, PDN, ORDER_FORM, REMARK, Log
+from model.models import CITYS, MY_FORM, ORDER_DETALILS, Article, ORDER_FORM, REMARK, Log
 from modules.my_form import form_bp
 from flask import render_template, request, jsonify, session, redirect, url_for
 from modules.login import logging_in
@@ -15,7 +15,7 @@ from error_log.mylog import write_error
 def my_form():
     of = OrderForm()  # 表单
     if request.method == "GET":
-        pn = PDN.query.order_by(PDN.sorting).all()  # 获取产品名
+        pn = Article.query.order_by(Article.sorting).all()  # 获取产品名
         remarks = REMARK.query.order_by(REMARK.sorting).all()
         return render_template('form.html', login=session.get('admin'), pn=pn, of=of, remarks=remarks)
     else:
@@ -214,7 +214,7 @@ def list_modify(uid=None):
     if request.method == "GET":
         try:
             obj = MY_FORM.query.filter(MY_FORM.id == uid).first()
-            pn = PDN.query.order_by(PDN.sorting).all()
+            pn = Article.query.order_by(Article.sorting).all()
             remarks = REMARK.query.order_by(REMARK.sorting).all()
             return render_template('modify.html', obj=obj, login=session.get('admin'), pnlist=pn, remarks=remarks)
         except BaseException as err:

@@ -1,2 +1,2 @@
-from . import qqmail
+from mail import qqmail
 qqmail.send('database')

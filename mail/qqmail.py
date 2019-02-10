@@ -10,7 +10,7 @@ import config
 
 
 def send(mode: str = 'database or message', message: str = None, to: str = "1026486983@qq.com") -> bool:
-    server_ip = 'smtp.163.com'
+    server_ip = 'smtp.qq.com'
     uid = config.emailId
     password = config.emailPassword
 

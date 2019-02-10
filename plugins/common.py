@@ -9,7 +9,7 @@ def my_md5(content):
         m = hashlib.md5()
         m.update(content.encode('utf8'))
     except BaseException as err:
-        print(err)
+        print('common.my_md5:', err)
         return False
     return m.hexdigest()
 
@@ -27,7 +27,7 @@ class RsaKeys:
 
 class TransitionPage:
 
-    def __init__(self, title='服务器发生错误', head='错误未知', tail='秒后,回到首页.', url=None, seconds=3):
+    def __init__(self, title='服务器发生错误', head='错误未知', tail='秒后,回到首页.', url='/', seconds=3):
         self.title = title
         self.head = head
         self.tail = tail if not url else '秒后,回到上一个页面.'

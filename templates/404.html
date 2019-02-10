@@ -39,7 +39,7 @@
         var second = {{ err.seconds }};
        function showtime() {
            if(second === 0){
-               window.location = "/";
+               window.location = "{{ err.url }}";
                clearInterval(time);
            };
            $("#text").html("{{ err.text_head }}" + "<br>" + second + "秒后返回");

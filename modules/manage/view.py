@@ -1,63 +1,68 @@
-from modules.manage import manage
-from flask import request, render_template, session, jsonify, redirect ,url_for
-from modules.login import logging_in
-from model.models import *
+from flask import request, render_template, jsonify, redirect, url_for
 from sqlalchemy import desc
+from modules.manage import manage
+from modules.login import logging_in
+from model.models import Article, REMARK
+from project_init import db
 
 
 @manage.route('/manage/')
 @logging_in
 def manage_func():
-    return render_template("manage.html", login=session.get('admin'))
+    """管理页主页"""
+    return render_template("manage.html")
 
 
-@manage.route('/manage/productname/')
+@manage.route('/manage/article_name/')
 @logging_in
-def product_name():
-    productname =PDN.query.order_by(PDN.sorting).all()
-    obj = {}
-    for i in productname:
-        obj.update({i.id: i.name})
-    return jsonify(obj)
+def article_name():
+    """物品名清单"""
+    # 获取所有物品名
+    articles = Article.query.order_by(Article.sorting).order_by(Article.sorting).all()
+    return jsonify([article.to_dict_() for article in articles])
 
 
-@manage.route('/manage/sorting/', methods=["GET", "POST"])
+@manage.route('/manage/sorting/', methods=["POST"])
 @logging_in
-def productname_sorting():
-    if request.method == "GET":
-        sorting = PDN.query.with_entities(PDN.name, PDN.sorting, PDN.id).order_by(PDN.sorting).all()
-        return jsonify(sorting)
-    else:
-        obj = request.get_json(' ')
-        for i in PDN.query.all():
-            i.sorting = None
-            db.session.add(i)
-        db.session.commit()
-        for i in PDN.query.all():
-            i.sorting = obj.get(str(i.id))
-            db.session.add(i)
-        db.session.commit()
-        return 'ok', 200
-
-
-@manage.route('/manage/newproductname/')
-@logging_in
-def new_product():
-    sorting = PDN.query.order_by(desc(PDN.sorting)).first().sorting + 1
-    new_product_name = request.args.get('NewProductName')
-    obj = PDN(new_product_name, sorting)
-    db.session.add(obj)
+def article_sorting():
+    """物品名排列顺序调整
+    防止顺序冲突.先清空所有物品顺序编号
+    更新物品顺序编号
+    """
+    sorting = request.get_json(force=True)  # 获取ajax传回来的物品排列顺序
+    for i in Article.query.all():
+        i.sorting = None
+        db.session.add(i)
     db.session.commit()
-    return product_name()
 
-
-@manage.route('/manage/productdelete/', methods=["POST"])
-@logging_in
-def product_delete():
-    delete_id = request.get_json('ProductName')
-    db.session.delete(PDN.query.filter(PDN.id == delete_id.get('ProductName')).first())
+    for i in Article.query.all():
+        i.sorting = sorting.get(str(i.id))
+        db.session.add(i)
     db.session.commit()
-    return product_name()
+    return 'ok', 200
+
+
+@manage.route('/manage/add_article/')
+@logging_in
+def add_article():
+    """添加新的物品
+    通过计算物总数,得到当前新增物品的排序编号.
+    :return 返回最新物品列表
+    """
+    sorting = Article.query.count()
+    name = request.args.get('NewProductName')
+    Article(name=name, sorting=sorting).direct_commit_()
+    return article_name()
+
+
+@manage.route('/manage/delete_article/', methods=["POST"])
+@logging_in
+def delete_article():
+    """删除物品"""
+    delete_id = request.get_json(force=True).get('ProductName')  # 获取物品编号
+    db.session.delete(Article.query.filter(Article.id == delete_id).first())
+    db.session.commit()
+    return article_name()
 
 
 @manage.route('/manage/remark/sorting/', methods=["GET", "POST"])

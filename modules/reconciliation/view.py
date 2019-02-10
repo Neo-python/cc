@@ -4,7 +4,7 @@ from flask import request, render_template, redirect, url_for, session, jsonify
 from sqlalchemy import text, desc
 from modules.reconciliation import reconciliation_bp
 from modules.login import logging_in, reconciliation_verification
-from model.models import ORDER_FORM, db, MY_FORM, Admin, PDN
+from model.models import ORDER_FORM, db, MY_FORM, Admin, Article
 from error_log.mylog import error404
 from plugins import common
 
@@ -168,8 +168,7 @@ def clear():
 @reconciliation_bp.route("/verification/", methods=["POST"])
 def verification():
     password = request.form.get("password")
-    admin = session.get("admin")
-    user = Admin.query.filter(Admin.username == admin).first()
+    user = Admin.query.get(session.get("admin").get('numbering'))
     if common.my_md5(password) == user.verification:
         session["verification"] = "verification"
         return redirect(url_for("reconciliation_bp.index"))
@@ -244,7 +243,7 @@ def average():
     for i in lists:
         time = datetime.datetime.strptime(i, "%Y/%m/%d")
         for ii in MY_FORM.query.filter(MY_FORM.createtime >= time, MY_FORM.createtime <
-                        time + datetime.timedelta(days=1)).all():
+                                                                   time + datetime.timedelta(days=1)).all():
             frequency += 1
             price_sum += ii.income
         days = (time - start).days
