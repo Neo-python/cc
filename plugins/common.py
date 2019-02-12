@@ -43,3 +43,27 @@ class TransitionPage:
             'seconds': self.seconds
         }
         return render_template('404.html', err=err)
+
+
+def page_generator(current_page_num: int, max_num: int, url: str, url_args: dict = None, style: str = 'action'):
+    """分页生成器
+    :param current_page_num: 当前页,页数
+    :param max_num: 最大页数
+    :param url: 分页地址,带问号.例:www.python.org/?
+    :param url_args: 地址参数
+    :param style:选中页样式.
+    :return: 渲染后的分页html内容.
+    """
+    if not url_args:
+        url_args = {}
+    args = ''
+    for k, v in url_args.items():
+        args += f'&{k}={v}'
+    page_info = {
+        'max_num': max_num,
+        'url': url,
+        'url_args': args,
+        'current_page_num': current_page_num,
+        'action': style
+    }
+    return render_template('page.html', data=page_info)

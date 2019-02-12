@@ -1,4 +1,4 @@
-from model.models import CITYS, MY_FORM, ORDER_DETALILS, Article, ORDER_FORM, REMARK, Log
+from model.models import CITYS, MY_FORM, ORDER_DETALILS, Article, Orders, Remark, Log
 from modules.my_form import form_bp
 from flask import render_template, request, jsonify, session, redirect, url_for
 from modules.login import logging_in
@@ -16,7 +16,7 @@ def my_form():
     of = OrderForm()  # 表单
     if request.method == "GET":
         pn = Article.query.order_by(Article.sorting).all()  # 获取产品名
-        remarks = REMARK.query.order_by(REMARK.sorting).all()
+        remarks = Remark.query.order_by(Remark.sorting).all()
         return render_template('form.html', login=session.get('admin'), pn=pn, of=of, remarks=remarks)
     else:
         form = request.form.to_dict()  # 提取表单内容 转为dict类型数据
@@ -95,7 +95,7 @@ def province():
 @logging_in
 def show_list():
     if request.method == "GET":
-        remarks = REMARK.query.order_by(REMARK.sorting).all()
+        remarks = Remark.query.order_by(Remark.sorting).all()
         return render_template('showlist.html', login=session.get('admin'), remarks=remarks)
     else:
         page = int(request.get_json('page')['page'])
@@ -215,7 +215,7 @@ def list_modify(uid=None):
         try:
             obj = MY_FORM.query.filter(MY_FORM.id == uid).first()
             pn = Article.query.order_by(Article.sorting).all()
-            remarks = REMARK.query.order_by(REMARK.sorting).all()
+            remarks = Remark.query.order_by(Remark.sorting).all()
             return render_template('modify.html', obj=obj, login=session.get('admin'), pnlist=pn, remarks=remarks)
         except BaseException as err:
             print(err)

@@ -3,8 +3,9 @@ from modules.admin import admin_bp
 from model.models import Admin, Log
 from mail.qqmail import send
 from modules.admin.plugins import Token
-from plugins import common
 from modules.login import logging_in
+from plugins import common
+from project_init import Redis
 import config
 
 
@@ -40,20 +41,29 @@ def verify_account():
             token = Token(admin.account, deadline=deadline)  # 将账户与cookie期限加密
             resp.set_cookie('token', token.encryption_to_string(), expires=deadline)  # cookie加入响应
 
-        send('message', message=f"登入者帐号{account}已成功登入ip:{ip}", to=config.recipient)  # 发送邮件通知
+        # send('message', message=f"登入者帐号{account}已成功登入ip:{ip}", to=config.recipient)  # 发送邮件通知
         Log(f"登入者帐号{account}已成功登入"f"ip:{ip}").direct_commit_()  # 记录日志
         return resp
     else:
         flash('账号密码错误')
-        send("message", message=f"登入者帐号密码输入错误.ip:{ip}", to=config.recipient)
+        # send("message", message=f"登入者帐号密码输入错误.ip:{ip}", to=config.recipient)
         Log(f"登入者帐号密码输入错误.ip:{ip}\n尝试帐号:{account}\n尝试密码:{password}").direct_commit_()
         return render_template('login.html')
 
 
 @admin_bp.route('/sign_out/')
 def sign_out():
-    """退出登录状态"""
-    session.pop('admin', None)  # 清除session状态
+    """退出登录状态
+    清除redis二级密码缓存
+    清除session状态
+    清除cookie
+    :return:
+    """
+    admin_id = session['admin']['numbering']
+    Redis.set(f'sub_password_{admin_id}', '', ex=1)
+
+    session.clear()  # 清除session状态
+
     resp = make_response(redirect('/login/'))  # 构建响应,跳转首页
     resp.set_cookie('token', '', max_age=-1)  # 主动退出,清除cookie.失去自动登录功能
     return resp

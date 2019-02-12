@@ -12,7 +12,7 @@ from modules.reconciliation import reconciliation_bp
 app.register_blueprint(admin_bp)
 app.register_blueprint(form_bp)
 app.register_blueprint(manage)
-app.register_blueprint(reconciliation_bp, url_prefix="/reconciliation")
+app.register_blueprint(reconciliation_bp)
 
 
 @app.route('/')

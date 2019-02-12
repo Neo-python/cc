@@ -1,8 +1,7 @@
 from flask import request, render_template, jsonify, redirect, url_for
-from sqlalchemy import desc
 from modules.manage import manage
 from modules.login import logging_in
-from model.models import Article, REMARK
+from model.models import Article, Remark
 from project_init import db
 
 
@@ -65,44 +64,48 @@ def delete_article():
     return article_name()
 
 
+@manage.route('/manage/remarks/', methods=['GET'])
+@logging_in
+def remarks():
+    """获取备注列表"""
+    values = Remark.query.with_entities(Remark.id, Remark.text, Remark.sorting).order_by(Remark.sorting).all()
+    return jsonify(values)
+
+
 @manage.route('/manage/remark/sorting/', methods=["GET", "POST"])
 @logging_in
 def remark_sorting():
-    if request.method == "GET":
-        objs = REMARK.query.with_entities(REMARK.id, REMARK.text, REMARK.sorting).order_by(REMARK.sorting).all()
-        return jsonify(objs)
-    else:
-        obj = request.get_json(' ')
-        for i in REMARK.query.all():
-            i.sorting = None
-            db.session.add(i)
-        db.session.commit()
-        for i in REMARK.query.all():
-            i.sorting = obj.get(str(i.id))
-            db.session.add(i)
-        db.session.commit()
-        return 'ok', 200
+    """备注排序
+    防止排序值冲突,先清空所有备注排序值,再更新排序.
+    """
+    data = request.get_json(force=True)
+    for i in Remark.query.all():
+        i.sorting = None
+        db.session.add(i)
+    db.session.commit()
+    for i in Remark.query.all():
+        i.sorting = data.get(str(i.id))
+        db.session.add(i)
+    db.session.commit()
+    return 'ok', 200
 
 
-@manage.route('/manage/remark/delete/<int:id>/')
-def remark_del(id=None):
-    db.session.delete(REMARK.query.filter(REMARK.id == id).first())
+@manage.route('/manage/remark/delete/<int:remark_id>/')
+def remark_del(remark_id=None):
+    """删除备注"""
+    db.session.delete(Remark.query.filter(Remark.id == remark_id).first())
     db.session.commit()
     return redirect(url_for("manage.manage_func"))
 
 
 @manage.route('/manage/remark/add/<text>/')
-@manage.route('/manage/remark/add/')
 def remark_add(text=None):
+    """添加新的备注"""
     if text:
-        remark_obj = REMARK.query.order_by(desc(REMARK.sorting)).first()
-        if remark_obj:
-            db.session.add(REMARK(text, remark_obj.sorting + 1))
-        else:
-            db.session.add(REMARK(text, 0))
-        db.session.commit()
+        soring = Remark.query.count()  # 得到已存备注数
+        Remark(text, soring).direct_commit_()  # 实际排序从0开始,因此新增数据可以直接使用count计数
         return redirect(url_for("manage.manage_func"))
     else:
         err = {'title': '服务器错误', 'text_head': "因输入的内容产生错误", 'text_tail': '秒后自动跳转回管理页面',
-               'url': url_for("manage.manage_func")}
+               'url': url_for("manage.manage_func"), 'seconds': 3}
         return render_template("404.html", err=err)

@@ -1,7 +1,7 @@
+import pickle
 from datetime import datetime
 from plugins.common import my_md5
 from project_init import db
-import pickle
 
 
 class Common(object):
@@ -173,8 +173,8 @@ class ORDER_DETALILS(db.Model):
         return f'货物名称:{self.productname} 重量体积:{self.measure} 单位:{self.measureunit}'
 
 
-class ORDER_FORM(db.Model):
-    __tablename__ = 'oderform'
+class Orders(db.Model):
+    __tablename__ = 'orders'
 
     id = db.Column(db.Integer, primary_key=True)
     lists = db.Column(db.String)
@@ -195,8 +195,12 @@ class ORDER_FORM(db.Model):
     def __repr__(self):
         return f'id:{self.id} lists:{pickle.loads(self.lists)}'
 
+    def lists_(self):
+        """还原数据"""
+        return pickle.loads(self.lists)
 
-class REMARK(db.Model):
+
+class Remark(db.Model, Common):
     __tablename__ = "remark"
 
     id = db.Column(db.Integer, primary_key=True)

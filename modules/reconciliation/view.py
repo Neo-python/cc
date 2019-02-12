@@ -4,59 +4,38 @@ from flask import request, render_template, redirect, url_for, session, jsonify
 from sqlalchemy import text, desc
 from modules.reconciliation import reconciliation_bp
 from modules.login import logging_in, reconciliation_verification
-from model.models import ORDER_FORM, db, MY_FORM, Admin, Article
+from model.models import Orders, db, MY_FORM, Admin, Article
 from error_log.mylog import error404
 from plugins import common
+from project_init import Redis
+import config
 
 
-@reconciliation_bp.route('/<int:id>/')
 @reconciliation_bp.route('/')
 @logging_in
 @reconciliation_verification
-def index(id=1):
-    db_obj = ORDER_FORM.query.order_by(
-        desc(ORDER_FORM.create_time)).paginate(id, per_page=10)
-    obj = db_obj.items
-    page = db_obj.iter_pages(left_edge=0, left_current=2,
-                             right_current=3, right_edge=0)
-    pages = [i for i in page if i]
-    page_max = db_obj.pages
-    if page_max >= 5:
-        if id <= 3:
-            pages = [i for i in range(1, 6)]
-        if page_max - id <= 2:
-            pages = [page_max - i for i in range(5)]
-        pages.sort()
-    for i in obj:
-        i.lists = pickle.loads(i.lists)
-    db.session.close()
-    return render_template('reconciliation-index.html', login=session.get("admin"), obj=obj, pages=pages,
-                           page_max=page_max, current=id)
+def index():
+    """对账模块主页"""
+    page = int(request.args.get('page', 1))
+    paginate = Orders.query.order_by(desc(Orders.id)).paginate(page=page, per_page=10)
+    pages = common.page_generator(page, paginate.pages, url=url_for('reconciliation_bp.index'))
+    return render_template('reconciliation/index.html', obj=paginate.items, pages=pages)
 
 
-@reconciliation_bp.route('/calculation/<int:uid>/')
+@reconciliation_bp.route('/calculation/<int:order_id>/')
 @logging_in
 @reconciliation_verification
-def calculation(uid=None):
+def settlement(order_id=None):
+    """对账表,单页数据结算.
+    :param order_id:多个订单组合起来的,对账单ID.
+    :param obj_db: 对账单对象
+    :param obj:订单列表[1,2,3]
+    :param mdb:obj查询到的对象
     """
-    :param uid:
-    :return:
-    obj_db: 对账单对象
-    obj:订单列表[1,2,3]
-    mdb:obj查询到的对象
-    """
-    if uid:
-        obj_db = ORDER_FORM.query.filter(ORDER_FORM.id == uid).first()
-        obj = pickle.loads(obj_db.lists)
-        if len(obj) <= 0:
-            db.session.delete(obj_db)
-            db.session.commit()
-            db.session.close()
-            return redirect(url_for("reconciliation_bp.index"))
-        mdb = MY_FORM.query.filter(
-            text(' or '.join([" MY_FORM.id ==" + str(i) for i in obj]))).all()
-    return render_template('reconciliation-calculation.html', login=session.get('admin'), db=mdb, uid=uid,
-                           lists=[i for i in obj], obj=obj_db)
+    orders = Orders.query.filter(Orders.id == order_id).first()
+    mdb = MY_FORM.query.filter(
+        text(' or '.join([" MY_FORM.id ==" + str(i) for i in orders.lists_()]))).all()
+    return render_template('reconciliation/settlement.html', db=mdb, orders=orders)
 
 
 @reconciliation_bp.route('/result/', methods=["POST"])
@@ -167,14 +146,15 @@ def clear():
 
 @reconciliation_bp.route("/verification/", methods=["POST"])
 def verification():
-    password = request.form.get("password")
-    user = Admin.query.get(session.get("admin").get('numbering'))
-    if common.my_md5(password) == user.verification:
-        session["verification"] = "verification"
+    """验证二级密码"""
+    password = request.form.get("password")  # 用户输入的二级密码
+    admin = Admin.query.get(session.get("admin").get('numbering'))  # 获得当前用户数据
+    if common.my_md5(password) == admin.verification:  # 验证用户输入
+        Redis.set(name=f'sub_password_{admin.id}', value='True', ex=config.REDIS_DEADLINE)  # 验证完成写入redis
         return redirect(url_for("reconciliation_bp.index"))
     else:
         err = {"title": "口令错误", "text_head": "请检查您的输入是否正确", "text_tail": "秒后自动跳转到上个页面",
-               'url': f'{url_for("reconciliation_bp.index")}'}
+               'url': f'{url_for("reconciliation_bp.index")}', 'seconds': 3}
         return error404(err)
 
 
@@ -260,7 +240,7 @@ def average():
 def product_income():
     obj = request.get_json(force=True)
     start, end = get_date(obj)
-    product = {i.id: {"name": i.name, "value": 0} for i in PDN.query.all()}
+    product = {i.id: {"name": i.name, "value": 0} for i in Article.query.all()}
     for i in MY_FORM.query.filter(MY_FORM.createtime >= start, MY_FORM.createtime < end).all():
         try:
             product[i.oids.first().pid]["value"] += i.income
@@ -275,7 +255,7 @@ def product_income():
 def product_profit():
     obj = request.get_json(force=True)
     start, end = get_date(obj)
-    product = {i.id: {"name": i.name, "price": 0, "income": 0} for i in PDN.query.all()}
+    product = {i.id: {"name": i.name, "price": 0, "income": 0} for i in Article.query.all()}
     for i in MY_FORM.query.filter(MY_FORM.createtime >= start, MY_FORM.createtime < end).all():
         p = i.oids.first()
         try:

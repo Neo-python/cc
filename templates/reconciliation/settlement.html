@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="col-lg-12 container">
+        <section class="panel">
+            <header class="panel-heading head-border">
+                <h1>对账单</h1>
+                <div style="width: 175px">
+                    <button class="btn btn-success" title="添加新的订单" id="add-btn"><i class="fa fa-plus-square "
+                                                                                   style="float: left"></i></button>
+                    <form action="{{ url_for("reconciliation_bp.reconciliation_add") }}" method="post" hidden
+                          id="add-form" style="float: right;margin-top: 1px">
+                        <input type="number" name="oid" value="{{ orders.id }}" hidden>
+                        <input type="number" name="addid" style="width: 100px" id="addid">
+                        <button type="submit" class="btn btn-primary btn-xs" style="margin-top: -3px">提交</button>
+                    </form>
+                </div>
+            </header>
+            <form action="{{ url_for('reconciliation_bp.reconciliation_result') }}" method="post" id="form-submit">
+                <input type="text" value="{{ orders.lists_() }}" hidden name="lists">
+                <input type="number" value="{{ orders.id }}" hidden name="uid">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>单号</th>
+                        <th>地址</th>
+                        <th>收货人</th>
+                        <th>货物详情</th>
+                        <th></th>
+                        <th>价格</th>
+                        <th>其他费用</th>
+                        <th>备注</th>
+                        <th>收入</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in db %}
+                        <tr>
+                            <td><a href="/modify/{{ i.id }}">{{ i.id }}</a></td>
+                            <td>{{ i.province_name.area_name ~'>'~ i.city_name.area_name ~'>'~(i.area_name.area_name if i.area) }}</td>
+                            <td>{{ i.user }}</td>
+                            <td>
+                                {% for pn in i.oids.all() %}
+                                    {{ pn.productname }}{{ pn.count }}件
+                                    {{ pn.measure if pn.measure }}{{ ("吨" if pn.meaureunit==0 else "方")if pn.measure }}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {{ "现付/" if i.payment == 0 else "提付/" }}
+                                {{ "自提" if i.receipt == 0 else "送货" }}
+                            </td>
+                            <td class="payment-td">
+                                <input type="number" style="background-color: #ec6459" id="payment0{{ i.id }}"
+                                       val="{{ i.id }}" value="{{ i.reprice }}" onclick="$(this).select()"
+                                       onchange="count(this.value,$(this).attr('val'));payment_0()" class="payment0"
+                                       name="payment0{{ i.id }}">
+                                <input type="number" style="background-color: #f1c500" value="{{ i.price }}"
+                                       id="payment1{{ i.id }}" name="payment1{{ i.id }}" onclick="$(this).select()"
+                                       val="{{ i.id }}" onchange="count(this.value,$(this).attr('val'));payment_1()"
+                                       class="payment1">
+                            </td>
+                            <td>
+                                <input type="number" id="other{{ i.id }}" val="{{ i.id }}" name="other{{ i.id }}"
+                                       value="{{ i.other }}"
+                                       onchange="count(this.value,$(this).attr('val'));other()" class="other"
+                                       onclick="$(this).select()">
+                            </td>
+                            <td id="remark-td">
+                                <textarea name="remark{{ i.id }}" id="remark{{ i.id }}"
+                                          hidden>{{ i.remarks }}</textarea>
+                                <div oninput="$('#remark{{ i.id }}').html($(this).text())" contenteditable="true"
+                                     class="remark">{{ i.remarks }}</div>
+                            </td>
+                            <td>
+                                <input type="number" name="count{{ i.id }}" id="count{{ i.id }}" class="count" hidden>
+                                <div id="rock{{ i.id }}" class="input-div"></div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for("reconciliation_bp.clear") +"?orderform="+ orders.id|string + "&myform=" +i.id|string }}"
+                                   class="btn btn-danger btn-xs"><i class="fa fa-trash-o "></i></a></td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" id="payment0" hidden>
+                            <input type="number" id="payment1" hidden>
+                            <div id="count_payment0" class="count_div input-div">0</div>
+                            <div id="count_payment1" class="count_div input-div"></div>
+                        </td>
+                        <td>
+                            <input type="number" id="others" hidden>
+                            <div id="count_others" class="input-div">0</div>
+                        </td>
+                        <td id="remarks-td">
+                            <textarea name="remarks" id="remarks" hidden value="{{ orders.remarks }}"></textarea>
+                            <div contenteditable="true" oninput="$('#remarks').attr('value',$(this).text())"
+                                 id="remarksdiv">{{ orders.remarks }}</div>
+                        </td>
+                        <td>
+                            <input type="number" name="sum" id="sum" hidden>
+                            <div id="rock_sum"></div>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-primary" id="btn-submit">提交</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div id="count"></div>
+            </form>
+        </section>
+    </div>
+
+
+{% endblock %}
+
+
+{% block my_script %}
+    <link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/templates/reconciliation-calculation/calculation.css">
+    <script src="/static/js/count.js"></script>
+    <script src="/static/templates/reconciliation-calculation/calculation.js"></script>
+    <style>
+    </style>
+    <script>
+        $(document).ready(function () {
+            {% for i in db %}
+                r($("#payment0" +{{ i.id }}).attr('value'), {{ i.id }});
+            {% endfor %}
+            e()
+        });
+    </script>
+{% endblock %}
