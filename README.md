@@ -26,14 +26,18 @@
 --templates  html页面相关
 
 <h2>技术栈</h2>
-web框架
+web框架<br>
     *Flask
-数据库
+<br>数据库<br>
     *sqlite
     *Flask-SQLAlchemy
     *Redis
-前端
-    *
-**项目部署**
-服务器:AWS Services  亚马逊服务器
+<br>前端<br>
+    jquery<br>
+    bootstrap<br>
+    font-awesome       图标与字体<br>
+    sortable-master    前端支持拖动排序的组件<br>
+    echarts            一款数据可视化前端组件<br>
+<h2>项目部署</h2>
+服务器:AWS Services  亚马逊服务器<br>
 
