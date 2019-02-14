@@ -1,3 +1,4 @@
+*.html linguist-language=Java
 ./idea/*
 ./*/idea/*
 idea/*
