@@ -34,7 +34,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for i in db %}
+                    {% for i in items %}
                         <tr>
                             <td><a href="/modify/{{ i.id }}">{{ i.id }}</a></td>
                             <td>{{ i.province_name.area_name ~'>'~ i.city_name.area_name ~'>'~(i.area_name.area_name if i.area) }}</td>
@@ -128,7 +128,7 @@
     </style>
     <script>
         $(document).ready(function () {
-            {% for i in db %}
+            {% for i in items %}
                 r($("#payment0" +{{ i.id }}).attr('value'), {{ i.id }});
             {% endfor %}
             e()

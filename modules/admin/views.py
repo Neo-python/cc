@@ -3,13 +3,13 @@ from modules.admin import admin_bp
 from model.models import Admin, Log
 from mail.qqmail import send
 from modules.admin.plugins import Token
-from modules.login import logging_in
+from modules.permission import logging_in
 from plugins import common
 from project_init import Redis
 import config
 
 
-@admin_bp.route('/login/', methods=['GET'])
+@admin_bp.route('/permission/', methods=['GET'])
 def login():
     """登入请求视图"""
     if session.get('admin'):
@@ -64,7 +64,7 @@ def sign_out():
 
     session.clear()  # 清除session状态
 
-    resp = make_response(redirect('/login/'))  # 构建响应,跳转首页
+    resp = make_response(redirect('/permission/'))  # 构建响应,跳转首页
     resp.set_cookie('token', '', max_age=-1)  # 主动退出,清除cookie.失去自动登录功能
     return resp
 

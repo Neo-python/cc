@@ -3,8 +3,8 @@ import datetime
 from flask import request, render_template, redirect, url_for, session, jsonify
 from sqlalchemy import text, desc
 from modules.reconciliation import reconciliation_bp
-from modules.login import logging_in, reconciliation_verification
-from model.models import Orders, db, MY_FORM, Admin, Article
+from modules.permission import logging_in, reconciliation_verification
+from model.models import Bill, db, Order, Admin, Article
 from error_log.mylog import error404
 from plugins import common
 from project_init import Redis
@@ -17,7 +17,7 @@ import config
 def index():
     """对账模块主页"""
     page = int(request.args.get('page', 1))
-    paginate = Orders.query.order_by(desc(Orders.id)).paginate(page=page, per_page=10)
+    paginate = Bill.query.order_by(desc(Bill.id)).paginate(page=page, per_page=10)
     pages = common.page_generator(page, paginate.pages, url=url_for('reconciliation_bp.index'))
     return render_template('reconciliation/index.html', obj=paginate.items, pages=pages)
 
@@ -28,34 +28,31 @@ def index():
 def settlement(order_id=None):
     """对账表,单页数据结算.
     :param order_id:多个订单组合起来的,对账单ID.
-    :param obj_db: 对账单对象
-    :param obj:订单列表[1,2,3]
-    :param mdb:obj查询到的对象
     """
-    orders = Orders.query.filter(Orders.id == order_id).first()
-    mdb = MY_FORM.query.filter(
-        text(' or '.join([" MY_FORM.id ==" + str(i) for i in orders.lists_()]))).all()
-    return render_template('reconciliation/settlement.html', db=mdb, orders=orders)
+    orders = Bill.query.filter(Bill.id == order_id).first()
+    items = Order.query.filter(text(' or '.join([" Order.id ==" + str(i) for i in orders.lists_()]))).all()
+    return render_template('reconciliation/settlement.html', items=items, orders=orders)
 
 
 @reconciliation_bp.route('/result/', methods=["POST"])
 @logging_in
 @reconciliation_verification
 def reconciliation_result():
-    obj = request.form.to_dict()
-    lists = eval(obj.get('lists'))
+    """对账结果提交保存"""
+    form = request.form.to_dict()
+    lists = eval(form.get('lists'))
     for i in lists:
-        m = MY_FORM.query.filter(MY_FORM.id == i).first()
-        m.remarks = obj.get(f"remark{i}")
-        m.reprice = obj.get(f"payment0{i}")
-        m.price = obj.get(f"payment1{i}")
-        m.other = obj.get(f"other{i}")
-        m.income = obj.get(f"count{i}")
+        m = Order.query.filter(Order.id == i).first()
+        m.remarks = form.get(f"remark{i}")
+        m.reprice = form.get(f"payment0{i}")
+        m.price = form.get(f"payment1{i}")
+        m.other = form.get(f"other{i}")
+        m.income = form.get(f"count{i}")
         m.reconciliation_status = True
-    o_obj = ORDER_FORM.query.filter(
-        ORDER_FORM.id == int(obj.get("uid"))).first()
-    o_obj.remarks = obj.get("remarks")
-    o_obj.price_sum = obj.get("sum")
+    o_obj = Bill.query.filter(
+        Bill.id == int(form.get("uid"))).first()
+    o_obj.remarks = form.get("remarks")
+    o_obj.price_sum = form.get("sum")
     o_obj.modify_time = datetime.datetime.now()
     o_obj.status = 1
     db.session.commit()
@@ -66,10 +63,10 @@ def reconciliation_result():
 @reconciliation_verification
 def reconciliation_del(uid=None):
     if uid:
-        for i in MY_FORM.query.filter(MY_FORM.reconciliation_id == uid).all():
+        for i in Order.query.filter(Order.reconciliation_id == uid).all():
             i.reconciliation_id = None
-        db.session.delete(ORDER_FORM.query.filter(
-            ORDER_FORM.id == uid).first())
+        db.session.delete(Bill.query.filter(
+            Bill.id == uid).first())
         db.session.commit()
         return redirect(url_for("reconciliation_bp.index"))
     else:
@@ -92,8 +89,8 @@ def reconciliation_add():
     if not obj.get("addid"):
         return error404()
     addid = int(obj.get("addid"))
-    oid_obj = ORDER_FORM.query.filter(ORDER_FORM.id == oid).first()
-    add_obj = MY_FORM.query.filter(MY_FORM.id == addid).first()
+    oid_obj = Bill.query.filter(Bill.id == oid).first()
+    add_obj = Order.query.filter(Order.id == addid).first()
 
     if not add_obj or add_obj.reconciliation_id:
         err = {'title': "操作错误.", 'text_head': "单号不存在,或已存在对账单中.请核对!!!", 'text_tail': '秒后自动跳转回对账单',
@@ -124,8 +121,8 @@ def clear():
     oid = ids.get("orderform")
     mid = ids.get("myform")
     if oid and mid:
-        oid_obj = ORDER_FORM.query.filter(ORDER_FORM.id == int(oid)).first()
-        mid_obj = MY_FORM.query.filter(MY_FORM.id == int(mid)).first()
+        oid_obj = Bill.query.filter(Bill.id == int(oid)).first()
+        mid_obj = Order.query.filter(Order.id == int(mid)).first()
         if oid_obj and mid_obj:
             lists = pickle.loads(oid_obj.lists)
             lists.remove(int(mid))
@@ -161,7 +158,7 @@ def verification():
 @reconciliation_bp.route('/page/<int:id>/')
 @reconciliation_bp.route('/page/')
 def page(id=1):
-    db_obj = ORDER_FORM.query.paginate(id, per_page=1)
+    db_obj = Bill.query.paginate(id, per_page=1)
     obj = db_obj.items
     page = db_obj.iter_pages(left_edge=0, left_current=2,
                              right_current=3, right_edge=0)
@@ -199,7 +196,7 @@ def all_income():
     start = now - datetime.timedelta(days=days[value] - 1)
     table = {(now - datetime.timedelta(days=i)).strftime("%Y-%m-%d"): 0 for i in
              range(days[value]).__reversed__()}
-    form = MY_FORM.query.filter(MY_FORM.createtime >= start).all()
+    form = Order.query.filter(Order.createtime >= start).all()
 
     for i in form:
         if i.price:
@@ -222,7 +219,7 @@ def average():
     price_sum = 0
     for i in lists:
         time = datetime.datetime.strptime(i, "%Y/%m/%d")
-        for ii in MY_FORM.query.filter(MY_FORM.createtime >= time, MY_FORM.createtime <
+        for ii in Order.query.filter(Order.createtime >= time, Order.createtime <
                                                                    time + datetime.timedelta(days=1)).all():
             frequency += 1
             price_sum += ii.income
@@ -241,7 +238,7 @@ def product_income():
     obj = request.get_json(force=True)
     start, end = get_date(obj)
     product = {i.id: {"name": i.name, "value": 0} for i in Article.query.all()}
-    for i in MY_FORM.query.filter(MY_FORM.createtime >= start, MY_FORM.createtime < end).all():
+    for i in Order.query.filter(Order.createtime >= start, Order.createtime < end).all():
         try:
             product[i.oids.first().pid]["value"] += i.income
         except KeyError:
@@ -256,7 +253,7 @@ def product_profit():
     obj = request.get_json(force=True)
     start, end = get_date(obj)
     product = {i.id: {"name": i.name, "price": 0, "income": 0} for i in Article.query.all()}
-    for i in MY_FORM.query.filter(MY_FORM.createtime >= start, MY_FORM.createtime < end).all():
+    for i in Order.query.filter(Order.createtime >= start, Order.createtime < end).all():
         p = i.oids.first()
         try:
             product[p.pid]["price"] += i.price

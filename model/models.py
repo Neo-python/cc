@@ -74,20 +74,21 @@ class CITYS(db.Model):
         return f'area_id:{self.area_id},parent_id:{self.parent_id},area_name:{self.area_name}'
 
 
-class MY_FORM(db.Model):
-    __tablename__ = 'my_form'
+class Order(db.Model, Common):
+    __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
+
     province = db.Column(db.Integer, db.ForeignKey('citys.area_id'))
     city = db.Column(db.Integer, db.ForeignKey('citys.area_id'))
     area = db.Column(db.Integer, db.ForeignKey('citys.area_id'))
     user = db.Column(db.String)
     phone = db.Column(db.String)
-    userunit = db.Column(db.String)
+    from_ = db.Column(db.String)
     telephone = db.Column(db.String)
     payment = db.Column(db.Integer)
     receipt = db.Column(db.Integer)
     client = db.Column(db.String)
-    clientphone = db.Column(db.String)
+    client_phone = db.Column(db.String)
     price = db.Column(db.Integer)
     remarks = db.Column(db.String)
     print_status = db.Column(db.Boolean)
@@ -96,26 +97,26 @@ class MY_FORM(db.Model):
     income = db.Column(db.Integer)
     reconciliation_status = db.Column(db.Boolean)
     reconciliation_id = db.Column(db.Integer)
-    createtime = db.Column(db.DateTime)
+    create_time = db.Column(db.DateTime, default=datetime.now)
 
     province_name = db.relationship("CITYS", backref=db.backref('provinces', lazy='dynamic'), foreign_keys=[province])
     city_name = db.relationship("CITYS", backref=db.backref('citys', lazy='dynamic'), foreign_keys=[city])
     area_name = db.relationship("CITYS", backref=db.backref('areas', lazy='dynamic'), foreign_keys=[area])
 
-    def __init__(self, province=None, city=None, area=None, user=None, phone=None, userunit=None, telephone=None,
-                 payment=None, receipt=None, client=None, clientphone=None, price=None, remarks=None, print_status=0,
-                 other=0, reprice=0, income=0, reconciliation_status=None, createtime=None):
+    def __init__(self, province=None, city=None, area=None, user=None, phone=None, from_=None, telephone=None,
+                 payment=None, receipt=None, client=None, client_phone=None, price=None, remarks=None, print_status=0,
+                 other=0, reprice=0, income=0, reconciliation_status=None, create_time=None):
         self.province = province
         self.city = city
         self.area = area
         self.user = user
         self.phone = phone
-        self.userunit = userunit
+        self.from_ = from_
         self.telephone = telephone
         self.payment = payment
         self.receipt = receipt
         self.client = client
-        self.clientphone = clientphone
+        self.client_phone = client_phone
         self.price = price
         self.remarks = remarks
         self.print_status = print_status
@@ -123,7 +124,7 @@ class MY_FORM(db.Model):
         self.reprice = reprice
         self.income = income
         self.reconciliation_status = reconciliation_status
-        self.createtime = datetime.now() if not createtime else createtime
+        self.create_time = create_time
 
     def __repr__(self):
         return f'id:{self.id} user:{self.user} phone:{self.phone} ' \
@@ -149,32 +150,32 @@ class Article(db.Model, Common):
         return {column.name: getattr(self, column.name, '') for column in self.__table__._columns}
 
 
-class ORDER_DETALILS(db.Model):
-    __tablename__ = 'orderdetalils'
+class OrderDetail(db.Model, Common):
+    __tablename__ = 'order_detail'
 
     id = db.Column(db.Integer, primary_key=True)
-    oid = db.Column(db.Integer, db.ForeignKey('my_form.id'))  # 订单id
-    pid = db.Column(db.Integer, db.ForeignKey('article.id'))  # 产品类型id
+    oid = db.Column(db.Integer, db.ForeignKey('order.id'))  # 订单id
+    article_id = db.Column(db.Integer, db.ForeignKey('article.id'))  # 产品类型id
     count = db.Column(db.Integer)
     measure = db.Column(db.Integer)
-    measureunit = db.Column(db.Integer)
+    unit = db.Column(db.Integer)
 
-    oder_id = db.relationship('MY_FORM', backref=db.backref('oids', lazy='dynamic'), foreign_keys=[oid])
-    productname = db.relationship("Article", backref=db.backref('pids', lazy='dynamic'), foreign_keys=[pid])
+    oder_id = db.relationship('Order', backref=db.backref('detail', lazy='dynamic'), foreign_keys=[oid])
+    article = db.relationship("Article", backref=db.backref('order_detail', lazy='dynamic'), foreign_keys=[article_id])
 
-    def __init__(self, oid, pid, count, measure, measureunit):
+    def __init__(self, oid, article_id, count, measure, unit):
         self.oid = oid
-        self.pid = pid
+        self.article_id = article_id
         self.count = count
         self.measure = measure
-        self.measureunit = measureunit
+        self.unit = unit
 
     def __repr__(self):
         return f'货物名称:{self.productname} 重量体积:{self.measure} 单位:{self.measureunit}'
 
 
-class Orders(db.Model):
-    __tablename__ = 'orders'
+class Bill(db.Model):
+    __tablename__ = 'bill'
 
     id = db.Column(db.Integer, primary_key=True)
     lists = db.Column(db.String)

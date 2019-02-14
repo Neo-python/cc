@@ -26,7 +26,7 @@
             <ul class="nav nav-pills nav-stacked side-navigation">
                 <li><a href="/"><i class="fa fa-home"></i> <span style="font-size: 20px">首页</span></a></li>
                 <li class="menu-list">
-                <li><a href="{{ url_for('form_bp.my_form') }}"><i class="fa fa-laptop"></i><span
+                <li><a href="{{ url_for('form_bp.business') }}"><i class="fa fa-laptop"></i><span
                         style="font-size: 20px">地址</span></a></li>
                 <li><a href="{{ url_for('form_bp.show_list') }}"><i class="fa fa-bars"></i><span
                         style="font-size: 20px">运单列表</span></a></li>
@@ -78,7 +78,7 @@
                     </div>
                 {% else %}
                     <div class="right-notification">
-                        <a href="{{ url_for('admin_bp.login') }}">
+                        <a href="{{ url_for('admin_bp.permission') }}">
                             <button class="btn btn-lg btn-success" style="margin: 7px 5px 0 0">登入</button>
                         </a>
                     </div>

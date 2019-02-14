@@ -67,3 +67,5 @@ def page_generator(current_page_num: int, max_num: int, url: str, url_args: dict
         'action': style
     }
     return render_template('page.html', data=page_info)
+
+

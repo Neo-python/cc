@@ -5,7 +5,7 @@ app = create_app()
 db.init_app(app=app)
 
 from modules.admin import admin_bp
-from modules.my_form import form_bp
+from modules.business import form_bp
 from modules.manage import manage
 from modules.reconciliation import reconciliation_bp
 

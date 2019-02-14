@@ -1,6 +1,6 @@
 from flask import request, render_template, jsonify, redirect, url_for
 from modules.manage import manage
-from modules.login import logging_in
+from modules.permission import logging_in
 from model.models import Article, Remark
 from project_init import db
 

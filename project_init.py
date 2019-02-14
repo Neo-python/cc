@@ -1,3 +1,5 @@
+"""防止循环导入,项目初始化所需对象在此创建"""
+
 import redis
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
