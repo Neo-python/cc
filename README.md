@@ -23,6 +23,8 @@
 
 --templates  html页面相关
 
+数据管理系统.xmind  部分功能逻辑思维导图
+
 <h2>技术栈</h2>
 <h3>web框架</h3>
     Flask
