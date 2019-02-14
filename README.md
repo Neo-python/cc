@@ -26,13 +26,13 @@
 --templates  html页面相关
 
 <h2>技术栈</h2>
-web框架<br>
-    *Flask
-<br>数据库<br>
-    *sqlite
-    *Flask-SQLAlchemy
-    *Redis
-<br>前端<br>
+<h3>web框架</h3>
+    Flask
+<h3>数据库</h3>
+    sqlite<br>
+    Flask-SQLAlchemy<br>
+    Redis<br>
+<h3>前端</h3>
     jquery<br>
     bootstrap<br>
     font-awesome       图标与字体<br>
