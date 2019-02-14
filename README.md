@@ -1,7 +1,5 @@
 <h1>cc数据管理系统</h1>
-此项目还在施工中
-
-项目是一年半前的已部署上线的商用作品.目前正在更新与重构
+项目是一年半前的已部署上线的商用作品.目前正在更新与重构<br>
 <h2>项目结构</h2>
 
 --error_log  错误处理相关
@@ -39,5 +37,7 @@
     sortable-master    前端支持拖动排序的组件<br>
     echarts            一款数据可视化前端组件<br>
 <h2>项目部署</h2>
-服务器:AWS Services  亚马逊服务器<br>
+AWS Services  亚马逊服务器<br>
+Nginx + uwsgi + redis
+
 
