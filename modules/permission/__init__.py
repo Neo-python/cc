@@ -19,7 +19,7 @@ def logging_in(func):
                 if token.verify_account():  # 验证token是否过期
                     session['admin'] = token.model.to_dict_()  # 写入用户信息至session状态
                     return func()
-        return redirect(url_for('admin_bp.permission'))  # 没有登入状态,又没有cookie.则转跳到登入页面
+        return redirect(url_for('admin_bp.login'))  # 没有登入状态,又没有cookie.则转跳到登入页面
 
     return inner
 
