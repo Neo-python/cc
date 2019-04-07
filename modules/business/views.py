@@ -110,10 +110,10 @@ val="{i.id}">{i.id}""") if not i.reconciliation_id else "&nbsp;&nbsp;&nbsp;&nbsp
             <td>{i.province_name.area_name} {i.city_name.area_name if i.city_name else ''}
             {i.area_name.area_name if i.area_name else ''}'''
             s += '''</td><td>'''
-            for ii in i.oids:
-                s += f'''{ii.productname} ({ii.count}件 {ii.measure}{
-                ('吨) ' if ii.measureunit == 0 else '方) ') if ii.measure else ')'}'''
-            s += f'''</td><td>{i.user}</td><td>{i.createtime.strftime('%Y-%m-%d %H:%M')}</td>
+            for ii in i.detail:
+                s += f'''{ii.article} ({ii.count}件 {ii.measure}{
+                ('吨) ' if ii.unit == 0 else '方) ') if ii.measure else ')'}'''
+            s += f'''</td><td>{i.user}</td><td>{i.create_time.strftime('%Y-%m-%d %H:%M')}</td>
             <td>
             <a href="/printer2/{i.id}" class="btn btn-info btn-xs"><i class="fa fa-print"></i></a>
             <a href="/printer/{i.id}" class="btn btn-success btn-xs"><i class="fa fa-search"></i></a>
@@ -249,7 +249,7 @@ def list_modify(uid=None):
         obj.price = form['price']
         obj.remarks = form['remarks']
         if form['date'] != '':
-            obj.createtime = datetime.strptime(form['date'], "%Y-%m-%d")
+            obj.create_time = datetime.strptime(form['date'], "%Y-%m-%d")
         d_obj = OrderDetail.query.filter(OrderDetail.oid == uid).first()
         d_obj.pid = d['pid']
         d_obj.measure = d['measure']
